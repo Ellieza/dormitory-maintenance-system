@@ -3,7 +3,16 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Attachments from "@/components/Attachments";
+import {
+  Send,
+  ArrowLeft,
+  AlertTriangle,
+  CheckCircle2,
+  Inbox,
+  User,
+} from "lucide-react";
 
 type RequestRow = {
   request_id: string;
@@ -22,11 +31,15 @@ type RequestRow = {
 };
 
 const statusColor: Record<string, string> = {
-  submitted: "bg-gray-100 text-gray-800",
-  confirmed: "bg-blue-100 text-blue-800",
-  approved: "bg-indigo-100 text-indigo-800",
-  in_progress: "bg-yellow-100 text-yellow-800",
-  resolved: "bg-green-100 text-green-800",
+  approved: "bg-indigo-100 text-indigo-700 border-indigo-200",
+  in_progress: "bg-amber-100 text-amber-700 border-amber-200",
+  resolved: "bg-emerald-100 text-emerald-700 border-emerald-200",
+};
+
+const statusLabel: Record<string, string> = {
+  approved: "Approved",
+  in_progress: "In Progress",
+  resolved: "Resolved",
 };
 
 export default function MatronPage() {
@@ -63,7 +76,6 @@ export default function MatronPage() {
     const selectFields =
       "request_id, description, status, urgency_level, is_fast_track, date_reported, confirmed_at, approved_at, date_resolved, student:student_id (full_name, contact_number), dormitory:dormitory_id (name), category:category_id (category_name), confirmer:confirmed_by (full_name)";
 
-    // Pending: confirmed, waiting for approval
     const { data: pendingData, error: pendingErr } = await supabase
       .from("maintenance_request")
       .select(selectFields)
@@ -71,7 +83,6 @@ export default function MatronPage() {
       .order("is_fast_track", { ascending: false })
       .order("confirmed_at", { ascending: true });
 
-    // Forwarded: approved or beyond
     const { data: forwardedData, error: forwardedErr } = await supabase
       .from("maintenance_request")
       .select(selectFields)
@@ -83,7 +94,8 @@ export default function MatronPage() {
       setError((pendingErr || forwardedErr)?.message ?? "Failed to load");
     } else {
       if (pendingData) setPending(pendingData as unknown as RequestRow[]);
-      if (forwardedData) setForwarded(forwardedData as unknown as RequestRow[]);
+      if (forwardedData)
+        setForwarded(forwardedData as unknown as RequestRow[]);
     }
     setLoading(false);
   }
@@ -127,7 +139,6 @@ export default function MatronPage() {
       notes: "Approved and forwarded to Maintenance by Matron/Patron",
     });
 
-    // Move it to the forwarded list (locally)
     const moved = pending.find((r) => r.request_id === requestId);
     setPending((prev) => prev.filter((r) => r.request_id !== requestId));
     if (moved) {
@@ -140,38 +151,52 @@ export default function MatronPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-blue-50">
-        <p className="text-gray-600">Loading...</p>
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-slate-500 text-sm">Loading...</div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-blue-50 p-8">
-      <div className="max-w-3xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-blue-900">
-            Matron / Patron Dashboard
-          </h1>
-          <p className="text-sm text-gray-500">
-            All dorms · confirmed reports awaiting approval, and forwarded ones
-          </p>
+    <main className="min-h-screen p-4 sm:p-8">
+      <div className="max-w-3xl mx-auto animate-fade-in">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-indigo-600 mb-4 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Dashboard
+        </Link>
+
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-11 h-11 rounded-xl bg-indigo-100 flex items-center justify-center">
+            <Send className="w-5 h-5 text-indigo-600" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">
+              Matron / Patron Dashboard
+            </h1>
+            <p className="text-sm text-slate-500">
+              All dorms · review and forward to Maintenance
+            </p>
+          </div>
         </div>
 
         {error && (
-          <p className="text-red-600 text-sm bg-red-50 p-3 rounded mb-4">
+          <div className="text-sm text-red-700 bg-red-50 border border-red-200 p-3 rounded-xl mb-4">
             {error}
-          </p>
+          </div>
         )}
 
-        {/* ============ SECTION 1: Awaiting approval ============ */}
-        <h2 className="text-lg font-semibold text-blue-900 mb-3">
+        {/* Pending */}
+        <h2 className="text-lg font-semibold text-slate-900 mb-3 px-1 inline-flex items-center gap-2">
+          <Inbox className="w-5 h-5 text-indigo-600" />
           Awaiting Your Approval ({pending.length})
         </h2>
 
         {pending.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-6 text-center mb-8">
-            <p className="text-gray-500 text-sm">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-8 text-center mb-8">
+            <p className="text-slate-500 text-sm">
               ✅ No confirmed reports waiting.
             </p>
           </div>
@@ -180,36 +205,53 @@ export default function MatronPage() {
             {pending.map((r) => (
               <div
                 key={r.request_id}
-                className="bg-white rounded-lg shadow-sm p-5 border border-gray-100"
+                className={`bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 border-l-4 ${
+                  r.is_fast_track
+                    ? "border-l-red-500"
+                    : r.urgency_level === "high"
+                    ? "border-l-orange-400"
+                    : "border-l-blue-400"
+                }`}
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-sm font-medium text-gray-500 capitalize">
+                <div className="flex items-center gap-2 mb-3 flex-wrap">
+                  <span className="text-sm font-medium text-slate-600 capitalize">
                     {r.category?.category_name ?? "Unknown"}
                   </span>
-                  <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
+                  <span className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">
                     {r.dormitory?.name ?? "Unknown dorm"}
                   </span>
                   {r.is_fast_track && (
-                    <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded font-medium">
+                    <span className="inline-flex items-center gap-1 text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-md font-medium">
+                      <AlertTriangle className="w-3 h-3" />
                       FAST-TRACK
                     </span>
                   )}
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-slate-400">
                     {r.urgency_level.toUpperCase()}
                   </span>
                 </div>
 
-                <p className="text-gray-800 mb-3">{r.description}</p>
+                <p className="text-slate-800 mb-3 leading-relaxed">
+                  {r.description}
+                </p>
+
                 <Attachments requestId={r.request_id} />
 
-                <div className="text-xs text-gray-500 space-y-1 mb-4">
-                  <p>
-                    Reported by <strong>{r.student?.full_name ?? "Unknown"}</strong>
+                <div className="text-xs text-slate-500 space-y-1 mt-3 mb-4">
+                  <p className="inline-flex items-center gap-1">
+                    <User className="w-3 h-3" />
+                    Reported by{" "}
+                    <strong className="text-slate-700">
+                      {r.student?.full_name ?? "Unknown"}
+                    </strong>
                     {r.student?.contact_number &&
                       ` · ${r.student.contact_number}`}
                   </p>
                   <p>
-                    Confirmed by <strong>{r.confirmer?.full_name ?? "Unknown"}</strong>
+                    Confirmed by{" "}
+                    <strong className="text-slate-700">
+                      {r.confirmer?.full_name ?? "Unknown"}
+                    </strong>
                     {r.confirmed_at &&
                       ` · ${new Date(r.confirmed_at).toLocaleString()}`}
                   </p>
@@ -218,26 +260,30 @@ export default function MatronPage() {
                 <button
                   onClick={() => handleApprove(r.request_id)}
                   disabled={actionLoading === r.request_id}
-                  className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50 font-medium text-sm"
+                  className="w-full inline-flex items-center justify-center gap-2 bg-indigo-600 text-white py-2.5 rounded-xl hover:bg-indigo-700 disabled:opacity-50 font-medium text-sm shadow-sm hover:shadow-md transition-all"
                 >
                   {actionLoading === r.request_id
                     ? "Approving..."
-                    : "✓ Approve & Forward to Maintenance"}
+                    : "Approve & Forward to Maintenance"}
+                  {actionLoading !== r.request_id && (
+                    <Send className="w-4 h-4" />
+                  )}
                 </button>
               </div>
             ))}
           </div>
         )}
 
-        {/* ============ SECTION 2: Forwarded ============ */}
-        <h2 className="text-lg font-semibold text-blue-900 mb-3">
+        {/* Forwarded */}
+        <h2 className="text-lg font-semibold text-slate-900 mb-3 px-1 inline-flex items-center gap-2">
+          <CheckCircle2 className="w-5 h-5 text-emerald-600" />
           Sent to Maintenance ({forwarded.length})
         </h2>
 
         {forwarded.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
-            <p className="text-gray-500 text-sm">
-              Nothing has been forwarded to Maintenance yet.
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-8 text-center">
+            <p className="text-slate-500 text-sm">
+              Nothing has been forwarded yet.
             </p>
           </div>
         ) : (
@@ -245,35 +291,42 @@ export default function MatronPage() {
             {forwarded.map((r) => (
               <div
                 key={r.request_id}
-                className="bg-white rounded-lg shadow-sm p-4 border border-gray-100"
+                className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-4"
               >
                 <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  <span className="text-xs font-medium text-gray-500 capitalize">
+                  <span className="text-xs font-medium text-slate-500 capitalize">
                     {r.category?.category_name ?? "Unknown"}
                   </span>
-                  <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
+                  <span className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">
                     {r.dormitory?.name ?? "Unknown dorm"}
                   </span>
                   {r.is_fast_track && (
-                    <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded font-medium">
+                    <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-md font-medium">
                       FAST-TRACK
                     </span>
                   )}
                   <span
-                    className={`text-xs px-2 py-0.5 rounded font-medium ${
-                      statusColor[r.status] ?? "bg-gray-100 text-gray-800"
+                    className={`text-xs px-2 py-0.5 rounded-md font-medium border ${
+                      statusColor[r.status] ??
+                      "bg-slate-100 text-slate-700 border-slate-200"
                     }`}
                   >
-                    {r.status.replace("_", " ").toUpperCase()}
+                    {statusLabel[r.status] ?? r.status.toUpperCase()}
                   </span>
                 </div>
-                <p className="text-gray-800 text-sm">{r.description}</p>
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-slate-800 text-sm leading-relaxed">
+                  {r.description}
+                </p>
+                <p className="text-xs text-slate-500 mt-2">
                   By {r.student?.full_name ?? "Unknown"}
                   {r.approved_at &&
-                    ` · forwarded ${new Date(r.approved_at).toLocaleDateString()}`}
+                    ` · forwarded ${new Date(
+                      r.approved_at
+                    ).toLocaleDateString()}`}
                   {r.date_resolved &&
-                    ` · ✅ resolved ${new Date(r.date_resolved).toLocaleDateString()}`}
+                    ` · ✅ resolved ${new Date(
+                      r.date_resolved
+                    ).toLocaleDateString()}`}
                 </p>
               </div>
             ))}

@@ -3,6 +3,15 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import {
+  FileWarning,
+  Upload,
+  X,
+  AlertTriangle,
+  ArrowLeft,
+  Send,
+} from "lucide-react";
 
 type Category = {
   category_id: string;
@@ -25,7 +34,8 @@ export default function ReportPage() {
       const supabase = createClient();
       const { data } = await supabase
         .from("category")
-        .select("category_id, category_name, default_urgency");
+        .select("category_id, category_name, default_urgency")
+        .order("category_name");
       if (data) setCategories(data);
     }
     loadCategories();
@@ -39,13 +49,11 @@ export default function ReportPage() {
       return;
     }
 
-    // Size limit: 50 MB
     if (f.size > 50 * 1024 * 1024) {
       setError("File is too large. Max 50 MB.");
       return;
     }
 
-    // Type limit: images or videos only
     if (!f.type.startsWith("image/") && !f.type.startsWith("video/")) {
       setError("Only images or videos are allowed.");
       return;
@@ -54,13 +62,17 @@ export default function ReportPage() {
     setError(null);
     setFile(f);
 
-    // Preview for images only
     if (f.type.startsWith("image/")) {
       const url = URL.createObjectURL(f);
       setPreview(url);
     } else {
       setPreview(null);
     }
+  }
+
+  function clearFile() {
+    setFile(null);
+    setPreview(null);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -101,7 +113,6 @@ export default function ReportPage() {
 
       const isFastTrack = selectedCategory.category_name === "pest";
 
-      // 1. Create the maintenance request
       const { data: newRequest, error: insertError } = await supabase
         .from("maintenance_request")
         .insert({
@@ -118,7 +129,6 @@ export default function ReportPage() {
 
       if (insertError) throw insertError;
 
-      // 2. Upload file if provided
       if (file) {
         const fileExt = file.name.split(".").pop();
         const fileName = `${newRequest.request_id}/${Date.now()}.${fileExt}`;
@@ -133,7 +143,6 @@ export default function ReportPage() {
           data: { publicUrl },
         } = supabase.storage.from("attachments").getPublicUrl(fileName);
 
-        // Insert attachment record
         const { error: attError } = await supabase.from("attachment").insert({
           request_id: newRequest.request_id,
           file_url: publicUrl,
@@ -142,7 +151,6 @@ export default function ReportPage() {
         if (attError) throw attError;
       }
 
-      // 3. Log the status update
       await supabase.from("status_update").insert({
         request_id: newRequest.request_id,
         updated_by: user.id,
@@ -151,7 +159,6 @@ export default function ReportPage() {
         notes: "Report submitted",
       });
 
-      // 4. If fast-track, create alerts
       if (isFastTrack) {
         const { data: recipients } = await supabase
           .from("users")
@@ -179,113 +186,171 @@ export default function ReportPage() {
   const isPest = selectedCategory?.category_name === "pest";
 
   return (
-    <main className="min-h-screen bg-blue-50 p-8">
-      <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-8">
-        <h1 className="text-2xl font-bold text-blue-900 mb-1">
-          Report a Maintenance Issue
-        </h1>
-        <p className="text-sm text-gray-500 mb-6">
-          Your report will go to your Sub-Warden for confirmation.
-        </p>
+    <main className="min-h-screen p-4 sm:p-8">
+      <div className="max-w-2xl mx-auto animate-fade-in">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-indigo-600 mb-4 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Dashboard
+        </Link>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700">
-              Category
-            </label>
-            <select
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-              required
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
-            >
-              <option value="">Select a category</option>
-              {categories.map((c) => (
-                <option key={c.category_id} value={c.category_id}>
-                  {c.category_name.charAt(0).toUpperCase() +
-                    c.category_name.slice(1)}
-                </option>
-              ))}
-            </select>
-
-            {isPest && (
-              <div className="mt-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded p-2">
-                ⚠️ <strong>Pest reports are treated as critical.</strong> An
-                immediate alert will be sent to Maintenance and Student Support
-                &amp; Facilities.
-              </div>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700">
-              Describe the issue
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-              rows={5}
-              placeholder="What's the problem? Be specific — location, what you see, how long it's been happening..."
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700">
-              Photo or Video Evidence <span className="text-gray-400 font-normal">(optional — max 50 MB)</span>
-            </label>
-            <input
-              type="file"
-              accept="image/*,video/*"
-              onChange={handleFileChange}
-              className="w-full text-sm border border-gray-300 rounded px-3 py-2 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              A 15–30 second video or a clear photo helps verify the issue faster.
-            </p>
-
-            {preview && (
-              <div className="mt-3">
-                <img
-                  src={preview}
-                  alt="Preview"
-                  className="max-h-48 rounded border border-gray-200"
-                />
-              </div>
-            )}
-
-            {file && file.type.startsWith("video/") && (
-              <p className="mt-2 text-xs text-gray-600">
-                🎥 Video selected: <strong>{file.name}</strong> (
-                {(file.size / 1024 / 1024).toFixed(1)} MB)
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-6 sm:p-8">
+          <div className="flex items-start gap-4 mb-6">
+            <div className="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center flex-shrink-0">
+              <FileWarning className="w-6 h-6 text-indigo-600" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900">
+                Report an Issue
+              </h1>
+              <p className="text-sm text-slate-500">
+                Your report will go to your Sub-Warden for confirmation
               </p>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                Category
+              </label>
+              <select
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+                required
+                className="w-full border border-slate-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 text-sm"
+              >
+                <option value="">Select a category</option>
+                {categories.map((c) => (
+                  <option key={c.category_id} value={c.category_id}>
+                    {c.category_name.charAt(0).toUpperCase() +
+                      c.category_name.slice(1)}
+                  </option>
+                ))}
+              </select>
+
+              {isPest && (
+                <div className="mt-2 flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl p-3">
+                  <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <strong>Pest reports are treated as critical.</strong> An
+                    immediate alert will be sent to Maintenance and Student
+                    Support &amp; Facilities.
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                Description
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+                rows={5}
+                placeholder="What's the problem? Be specific — location, what you see, how long it's been happening..."
+                className="w-full border border-slate-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 text-sm resize-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                Photo or Video Evidence{" "}
+                <span className="text-slate-400 font-normal">
+                  (optional · max 50 MB)
+                </span>
+              </label>
+
+              {!file ? (
+                <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-xl p-6 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/50 transition-all">
+                  <Upload className="w-6 h-6 text-slate-400 mb-2" />
+                  <p className="text-sm text-slate-600 font-medium">
+                    Click to upload a photo or video
+                  </p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    A clear photo or 15–30 second video helps verify the issue
+                  </p>
+                  <input
+                    type="file"
+                    accept="image/*,video/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </label>
+              ) : (
+                <div className="border border-slate-300 rounded-xl p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-slate-800 truncate">
+                        {file.name}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {(file.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={clearFile}
+                      className="text-slate-400 hover:text-red-600 p-1 rounded hover:bg-red-50 transition-colors flex-shrink-0"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {preview && (
+                    <div className="mt-3">
+                      <img
+                        src={preview}
+                        alt="Preview"
+                        className="max-h-48 rounded-lg border border-slate-200"
+                      />
+                    </div>
+                  )}
+
+                  {file.type.startsWith("video/") && (
+                    <p className="mt-2 text-xs text-slate-500">
+                      🎥 Video ready to upload
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {error && (
+              <div className="text-sm text-red-700 bg-red-50 border border-red-200 p-3 rounded-xl">
+                {error}
+              </div>
             )}
-          </div>
 
-          {error && (
-            <p className="text-red-600 text-sm bg-red-50 p-2 rounded">
-              {error}
-            </p>
-          )}
-
-          <div className="flex gap-3">
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50 font-medium"
-            >
-              {loading ? "Submitting..." : "Submit Report"}
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push("/dashboard")}
-              className="px-4 py-2 rounded border border-gray-300 text-gray-700 hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
+            <div className="flex gap-3 pt-2">
+              <button
+                type="submit"
+                disabled={loading}
+                className="group flex-1 inline-flex items-center justify-center gap-2 bg-indigo-600 text-white py-3 rounded-xl hover:bg-indigo-700 disabled:opacity-50 font-medium shadow-sm hover:shadow-md transition-all"
+              >
+                {loading ? (
+                  "Submitting..."
+                ) : (
+                  <>
+                    Submit Report
+                    <Send className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push("/dashboard")}
+                className="px-5 py-3 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 font-medium transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </main>
   );

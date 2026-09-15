@@ -3,7 +3,15 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Attachments from "@/components/Attachments";
+import {
+  CheckCircle2,
+  ArrowLeft,
+  AlertTriangle,
+  User,
+  Clock,
+} from "lucide-react";
 
 type RequestRow = {
   request_id: string;
@@ -34,7 +42,6 @@ export default function SubWardenPage() {
       return;
     }
 
-    // Get this sub-warden's dormitory
     const { data: profile } = await supabase
       .from("users")
       .select("dormitory_id, role")
@@ -47,7 +54,6 @@ export default function SubWardenPage() {
       return;
     }
 
-    // Load requests for their dorm that need confirmation
     const { data, error: fetchError } = await supabase
       .from("maintenance_request")
       .select(
@@ -58,11 +64,8 @@ export default function SubWardenPage() {
       .order("is_fast_track", { ascending: false })
       .order("date_reported", { ascending: true });
 
-    if (fetchError) {
-      setError(fetchError.message);
-    } else if (data) {
-      setRequests(data as unknown as RequestRow[]);
-    }
+    if (fetchError) setError(fetchError.message);
+    else if (data) setRequests(data as unknown as RequestRow[]);
     setLoading(false);
   }
 
@@ -82,7 +85,6 @@ export default function SubWardenPage() {
 
     if (!user) return;
 
-    // Update the request
     const { error: updateError } = await supabase
       .from("maintenance_request")
       .update({
@@ -98,7 +100,6 @@ export default function SubWardenPage() {
       return;
     }
 
-    // Log the status change
     await supabase.from("status_update").insert({
       request_id: requestId,
       updated_by: user.id,
@@ -107,41 +108,57 @@ export default function SubWardenPage() {
       notes: "Confirmed by Sub-Warden",
     });
 
-    // Remove from list
     setRequests((prev) => prev.filter((r) => r.request_id !== requestId));
     setActionLoading(null);
   }
 
   if (loading) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-blue-50">
-        <p className="text-gray-600">Loading...</p>
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-slate-500 text-sm">Loading...</div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-blue-50 p-8">
-      <div className="max-w-3xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-blue-900">
-            Sub-Warden Dashboard
-          </h1>
-          <p className="text-sm text-gray-500">
-            Reports waiting for your confirmation
-          </p>
+    <main className="min-h-screen p-4 sm:p-8">
+      <div className="max-w-3xl mx-auto animate-fade-in">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-indigo-600 mb-4 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Dashboard
+        </Link>
+
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-11 h-11 rounded-xl bg-indigo-100 flex items-center justify-center">
+            <CheckCircle2 className="w-5 h-5 text-indigo-600" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">
+              Sub-Warden Dashboard
+            </h1>
+            <p className="text-sm text-slate-500">
+              Reports waiting for your confirmation ({requests.length})
+            </p>
+          </div>
         </div>
 
         {error && (
-          <p className="text-red-600 text-sm bg-red-50 p-3 rounded mb-4">
+          <div className="text-sm text-red-700 bg-red-50 border border-red-200 p-3 rounded-xl mb-4">
             {error}
-          </p>
+          </div>
         )}
 
         {requests.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-8 text-center">
-            <p className="text-gray-600">
-              ✅ No reports waiting. You&apos;re all caught up.
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-12 text-center">
+            <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-emerald-100 flex items-center justify-center">
+              <CheckCircle2 className="w-7 h-7 text-emerald-600" />
+            </div>
+            <p className="text-slate-700 font-medium mb-1">All caught up!</p>
+            <p className="text-sm text-slate-500">
+              No reports waiting for confirmation.
             </p>
           </div>
         ) : (
@@ -149,44 +166,63 @@ export default function SubWardenPage() {
             {requests.map((r) => (
               <div
                 key={r.request_id}
-                className="bg-white rounded-lg shadow-sm p-5 border border-gray-100"
+                className={`bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 border-l-4 ${
+                  r.is_fast_track
+                    ? "border-l-red-500"
+                    : r.urgency_level === "high"
+                    ? "border-l-orange-400"
+                    : r.urgency_level === "medium"
+                    ? "border-l-blue-400"
+                    : "border-l-slate-300"
+                }`}
               >
-                <div className="flex items-start justify-between gap-4 mb-3">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-medium text-gray-500 capitalize">
-                        {r.category?.category_name ?? "Unknown"}
-                      </span>
-                      {r.is_fast_track && (
-                        <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded font-medium">
-                          FAST-TRACK
-                        </span>
-                      )}
-                      <span className="text-xs text-gray-400">
-                        {r.urgency_level.toUpperCase()}
-                      </span>
-                    </div>
-                    <p className="text-gray-800">{r.description}</p>
-                    <p className="text-xs text-gray-500 mt-2">
-                      By <strong>{r.student?.full_name ?? "Unknown"}</strong>
-                      {r.student?.contact_number &&
-                        ` · ${r.student.contact_number}`}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      {new Date(r.date_reported).toLocaleString()}
-                    </p>
-                    <Attachments requestId={r.request_id} />
-                  </div>
+                <div className="flex items-center gap-2 mb-3 flex-wrap">
+                  <span className="text-sm font-medium text-slate-600 capitalize">
+                    {r.category?.category_name ?? "Unknown"}
+                  </span>
+                  {r.is_fast_track && (
+                    <span className="inline-flex items-center gap-1 text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-md font-medium">
+                      <AlertTriangle className="w-3 h-3" />
+                      FAST-TRACK
+                    </span>
+                  )}
+                  <span className="text-xs text-slate-400">
+                    {r.urgency_level.toUpperCase()}
+                  </span>
+                </div>
+
+                <p className="text-slate-800 mb-3 leading-relaxed">
+                  {r.description}
+                </p>
+
+                <Attachments requestId={r.request_id} />
+
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 mt-3 mb-4">
+                  <span className="inline-flex items-center gap-1">
+                    <User className="w-3 h-3" />
+                    <strong className="text-slate-700">
+                      {r.student?.full_name ?? "Unknown"}
+                    </strong>
+                    {r.student?.contact_number &&
+                      ` · ${r.student.contact_number}`}
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {new Date(r.date_reported).toLocaleString()}
+                  </span>
                 </div>
 
                 <button
                   onClick={() => handleConfirm(r.request_id)}
                   disabled={actionLoading === r.request_id}
-                  className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50 font-medium text-sm"
+                  className="w-full inline-flex items-center justify-center gap-2 bg-indigo-600 text-white py-2.5 rounded-xl hover:bg-indigo-700 disabled:opacity-50 font-medium text-sm shadow-sm hover:shadow-md transition-all"
                 >
                   {actionLoading === r.request_id
                     ? "Confirming..."
-                    : "✓ Confirm Issue is Genuine"}
+                    : "Confirm Issue is Genuine"}
+                  {actionLoading !== r.request_id && (
+                    <CheckCircle2 className="w-4 h-4" />
+                  )}
                 </button>
               </div>
             ))}

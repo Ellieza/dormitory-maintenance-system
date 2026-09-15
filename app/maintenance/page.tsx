@@ -3,7 +3,17 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Attachments from "@/components/Attachments";
+import {
+  Wrench,
+  ArrowLeft,
+  AlertTriangle,
+  Play,
+  CheckCircle2,
+  Clock,
+  User,
+} from "lucide-react";
 
 type RequestRow = {
   request_id: string;
@@ -17,12 +27,6 @@ type RequestRow = {
   student: { full_name: string; contact_number: string | null } | null;
   dormitory: { name: string } | null;
   category: { category_name: string } | null;
-};
-
-const statusColor: Record<string, string> = {
-  approved: "bg-indigo-100 text-indigo-800",
-  in_progress: "bg-yellow-100 text-yellow-800",
-  resolved: "bg-green-100 text-green-800",
 };
 
 const urgencyOrder: Record<string, number> = {
@@ -85,9 +89,8 @@ export default function MaintenancePage() {
       .order("approved_at", { ascending: false })
       .limit(100);
 
-    if (fetchError) {
-      setError(fetchError.message);
-    } else if (data) {
+    if (fetchError) setError(fetchError.message);
+    else if (data) {
       const rows = data as unknown as RequestRow[];
       setQueue(sortRequests(rows.filter((r) => r.status === "approved")));
       setInProgress(
@@ -146,7 +149,6 @@ export default function MaintenancePage() {
           : "Marked as resolved by Maintenance",
     });
 
-    // Update local state
     if (fromList === "queue" && newStatus === "in_progress") {
       const moved = queue.find((r) => r.request_id === requestId);
       setQueue((prev) => prev.filter((r) => r.request_id !== requestId));
@@ -169,77 +171,97 @@ export default function MaintenancePage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-blue-50">
-        <p className="text-gray-600">Loading...</p>
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-slate-500 text-sm">Loading...</div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-blue-50 p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-blue-900">
-            Maintenance Queue
-          </h1>
-          <p className="text-sm text-gray-500">
-            Prioritized work — fast-track and critical first
-          </p>
+    <main className="min-h-screen p-4 sm:p-8">
+      <div className="max-w-4xl mx-auto animate-fade-in">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-indigo-600 mb-4 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Dashboard
+        </Link>
+
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-11 h-11 rounded-xl bg-indigo-100 flex items-center justify-center">
+            <Wrench className="w-5 h-5 text-indigo-600" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">
+              Maintenance Queue
+            </h1>
+            <p className="text-sm text-slate-500">
+              Prioritized work · fast-track and critical first
+            </p>
+          </div>
         </div>
 
         {error && (
-          <p className="text-red-600 text-sm bg-red-50 p-3 rounded mb-4">
+          <div className="text-sm text-red-700 bg-red-50 border border-red-200 p-3 rounded-xl mb-4">
             {error}
-          </p>
+          </div>
         )}
 
-        {/* ============ Queue ============ */}
-        <h2 className="text-lg font-semibold text-blue-900 mb-3">
+        {/* Queue */}
+        <h2 className="text-lg font-semibold text-slate-900 mb-3 px-1 inline-flex items-center gap-2">
+          <Clock className="w-5 h-5 text-amber-600" />
           Waiting for Work ({queue.length})
         </h2>
         {queue.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-6 text-center mb-8">
-            <p className="text-gray-500 text-sm">Queue is empty.</p>
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-8 text-center mb-8">
+            <p className="text-slate-500 text-sm">Queue is empty.</p>
           </div>
         ) : (
           <div className="space-y-3 mb-8">
             {queue.map((r) => (
               <div
                 key={r.request_id}
-                className={`bg-white rounded-lg shadow-sm p-5 border-l-4 ${
+                className={`bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 border-l-4 ${
                   r.is_fast_track
                     ? "border-l-red-500"
                     : r.urgency_level === "high"
                     ? "border-l-orange-400"
                     : r.urgency_level === "medium"
                     ? "border-l-blue-400"
-                    : "border-l-gray-300"
+                    : "border-l-slate-300"
                 }`}
               >
-                <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  <span className="text-sm font-medium text-gray-500 capitalize">
+                <div className="flex items-center gap-2 mb-3 flex-wrap">
+                  <span className="text-sm font-medium text-slate-600 capitalize">
                     {r.category?.category_name ?? "Unknown"}
                   </span>
-                  <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
+                  <span className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">
                     {r.dormitory?.name ?? "Unknown dorm"}
                   </span>
                   {r.is_fast_track && (
-                    <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded font-medium">
+                    <span className="inline-flex items-center gap-1 text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-md font-medium">
+                      <AlertTriangle className="w-3 h-3" />
                       FAST-TRACK
                     </span>
                   )}
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-slate-400">
                     {r.urgency_level.toUpperCase()}
                   </span>
                 </div>
 
-                <p className="text-gray-800 mb-3">{r.description}</p>
+                <p className="text-slate-800 mb-3 leading-relaxed">
+                  {r.description}
+                </p>
+
                 <Attachments requestId={r.request_id} />
 
-                <p className="text-xs text-gray-500 mb-4">
-                  Reported by <strong>{r.student?.full_name ?? "Unknown"}</strong>
-                  {r.student?.contact_number &&
-                    ` · ${r.student.contact_number}`}
+                <p className="text-xs text-slate-500 mt-3 mb-4 inline-flex items-center gap-1">
+                  <User className="w-3 h-3" />
+                  <strong className="text-slate-700">
+                    {r.student?.full_name ?? "Unknown"}
+                  </strong>
+                  {r.student?.contact_number && ` · ${r.student.contact_number}`}
                 </p>
 
                 <button
@@ -247,92 +269,105 @@ export default function MaintenancePage() {
                     updateStatus(r.request_id, "in_progress", "queue")
                   }
                   disabled={actionLoading === r.request_id}
-                  className="w-full bg-yellow-500 text-white py-2 rounded hover:bg-yellow-600 disabled:opacity-50 font-medium text-sm"
+                  className="w-full inline-flex items-center justify-center gap-2 bg-amber-500 text-white py-2.5 rounded-xl hover:bg-amber-600 disabled:opacity-50 font-medium text-sm shadow-sm hover:shadow-md transition-all"
                 >
-                  {actionLoading === r.request_id
-                    ? "Updating..."
-                    : "▶ Start Work"}
+                  {actionLoading === r.request_id ? (
+                    "Updating..."
+                  ) : (
+                    <>
+                      Start Work
+                      <Play className="w-4 h-4" />
+                    </>
+                  )}
                 </button>
               </div>
             ))}
           </div>
         )}
 
-        {/* ============ In Progress ============ */}
-        <h2 className="text-lg font-semibold text-blue-900 mb-3">
+        {/* In Progress */}
+        <h2 className="text-lg font-semibold text-slate-900 mb-3 px-1 inline-flex items-center gap-2">
+          <Wrench className="w-5 h-5 text-amber-600" />
           In Progress ({inProgress.length})
         </h2>
         {inProgress.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-6 text-center mb-8">
-            <p className="text-gray-500 text-sm">Nothing in progress.</p>
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-8 text-center mb-8">
+            <p className="text-slate-500 text-sm">Nothing in progress.</p>
           </div>
         ) : (
           <div className="space-y-3 mb-8">
             {inProgress.map((r) => (
               <div
                 key={r.request_id}
-                className="bg-white rounded-lg shadow-sm p-5 border border-yellow-200"
+                className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 border-l-4 border-l-amber-400"
               >
-                <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  <span className="text-sm font-medium text-gray-500 capitalize">
+                <div className="flex items-center gap-2 mb-3 flex-wrap">
+                  <span className="text-sm font-medium text-slate-600 capitalize">
                     {r.category?.category_name ?? "Unknown"}
                   </span>
-                  <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
+                  <span className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">
                     {r.dormitory?.name ?? "Unknown dorm"}
                   </span>
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded font-medium ${
-                      statusColor[r.status] ?? ""
-                    }`}
-                  >
+                  <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-md font-medium border border-amber-200">
                     IN PROGRESS
                   </span>
                 </div>
-                <p className="text-gray-800 mb-3">{r.description}</p>
+                <p className="text-slate-800 mb-3 leading-relaxed">
+                  {r.description}
+                </p>
+                <Attachments requestId={r.request_id} />
                 <button
                   onClick={() =>
                     updateStatus(r.request_id, "resolved", "inProgress")
                   }
                   disabled={actionLoading === r.request_id}
-                  className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 disabled:opacity-50 font-medium text-sm"
+                  className="mt-3 w-full inline-flex items-center justify-center gap-2 bg-emerald-600 text-white py-2.5 rounded-xl hover:bg-emerald-700 disabled:opacity-50 font-medium text-sm shadow-sm hover:shadow-md transition-all"
                 >
-                  {actionLoading === r.request_id
-                    ? "Updating..."
-                    : "✓ Mark as Resolved"}
+                  {actionLoading === r.request_id ? (
+                    "Updating..."
+                  ) : (
+                    <>
+                      Mark as Resolved
+                      <CheckCircle2 className="w-4 h-4" />
+                    </>
+                  )}
                 </button>
               </div>
             ))}
           </div>
         )}
 
-        {/* ============ Resolved ============ */}
-        <h2 className="text-lg font-semibold text-blue-900 mb-3">
+        {/* Resolved */}
+        <h2 className="text-lg font-semibold text-slate-900 mb-3 px-1 inline-flex items-center gap-2">
+          <CheckCircle2 className="w-5 h-5 text-emerald-600" />
           Recently Resolved ({resolved.length})
         </h2>
         {resolved.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
-            <p className="text-gray-500 text-sm">Nothing resolved yet.</p>
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-8 text-center">
+            <p className="text-slate-500 text-sm">Nothing resolved yet.</p>
           </div>
         ) : (
           <div className="space-y-2">
             {resolved.slice(0, 10).map((r) => (
               <div
                 key={r.request_id}
-                className="bg-white rounded-lg shadow-sm p-4 border border-green-100"
+                className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-4"
               >
-                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <span className="text-xs font-medium text-gray-500 capitalize">
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  <span className="text-xs font-medium text-slate-500 capitalize">
                     {r.category?.category_name ?? "Unknown"}
                   </span>
-                  <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
+                  <span className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">
                     {r.dormitory?.name ?? "Unknown dorm"}
                   </span>
-                  <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded font-medium">
+                  <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md font-medium border border-emerald-200">
                     RESOLVED
                   </span>
                 </div>
-                <p className="text-gray-800 text-sm">{r.description}</p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-slate-800 text-sm leading-relaxed">
+                  {r.description}
+                </p>
+                <p className="text-xs text-slate-500 mt-2">
                   By {r.student?.full_name ?? "Unknown"}
                   {r.date_resolved &&
                     ` · resolved ${new Date(

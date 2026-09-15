@@ -5,6 +5,16 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Attachments from "@/components/Attachments";
+import {
+  FileWarning,
+  ClipboardList,
+  CheckCircle2,
+  Send,
+  Wrench,
+  BarChart3,
+  User,
+  Mail,
+} from "lucide-react";
 
 type Profile = {
   full_name: string;
@@ -25,11 +35,19 @@ type ActiveReport = {
 };
 
 const statusColor: Record<string, string> = {
-  submitted: "bg-gray-100 text-gray-800",
-  confirmed: "bg-blue-100 text-blue-800",
-  approved: "bg-indigo-100 text-indigo-800",
-  in_progress: "bg-yellow-100 text-yellow-800",
-  resolved: "bg-green-100 text-green-800",
+  submitted: "bg-slate-100 text-slate-700",
+  confirmed: "bg-blue-100 text-blue-700",
+  approved: "bg-indigo-100 text-indigo-700",
+  in_progress: "bg-amber-100 text-amber-700",
+  resolved: "bg-emerald-100 text-emerald-700",
+};
+
+const roleLabels: Record<string, string> = {
+  student: "Student",
+  sub_warden: "Sub-Warden",
+  matron_patron: "Matron / Patron",
+  maintenance: "Maintenance Team",
+  ssf: "Student Support & Facilities",
 };
 
 export default function DashboardPage() {
@@ -62,7 +80,6 @@ export default function DashboardPage() {
 
       setProfile(data);
 
-      // SSF: also fetch active (unresolved) reports to show inline
       if (data?.role === "ssf") {
         const { data: alerts } = await supabase
           .from("maintenance_request")
@@ -81,179 +98,231 @@ export default function DashboardPage() {
     load();
   }, [router]);
 
-  async function handleLogout() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/login");
-  }
-
   if (loading) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-blue-50">
-        <p className="text-gray-600">Loading...</p>
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-slate-500 text-sm">Loading...</div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-blue-50 p-8">
-      <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-8">
-        <div className="flex justify-between items-start mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-blue-900">Dashboard</h1>
-            <p className="text-gray-700 mt-1">
-              Welcome,{" "}
-              <span className="font-semibold">{profile?.full_name}</span>
-            </p>
+    <main className="min-h-screen p-4 sm:p-8">
+      <div className="max-w-3xl mx-auto animate-fade-in">
+        {/* Welcome card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-6 sm:p-8">
+          <h1 className="text-3xl font-bold text-slate-900 mb-1">Dashboard</h1>
+          <p className="text-slate-600 mb-6">
+            Welcome back,{" "}
+            <span className="font-semibold text-slate-800">
+              {profile?.full_name}
+            </span>
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+            <div className="flex items-center gap-3 bg-slate-50 rounded-xl p-4 border border-slate-100">
+              <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                <User className="w-5 h-5 text-indigo-600" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs text-slate-500 font-medium">ROLE</p>
+                <p className="text-sm font-semibold text-slate-800 truncate">
+                  {roleLabels[profile?.role ?? ""] ?? profile?.role}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 bg-slate-50 rounded-xl p-4 border border-slate-100">
+              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                <Mail className="w-5 h-5 text-blue-600" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs text-slate-500 font-medium">EMAIL</p>
+                <p className="text-sm font-semibold text-slate-800 truncate">
+                  {email}
+                </p>
+              </div>
+            </div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="text-sm text-red-600 hover:text-red-800 border border-red-200 rounded px-3 py-1"
-          >
-            Log Out
-          </button>
-        </div>
 
-        <div className="bg-blue-50 border border-blue-200 rounded p-4">
-          <p className="text-sm text-gray-700">
-            <span className="font-semibold">Role:</span>{" "}
-            {profile?.role?.replace("_", " ")}
-          </p>
-          <p className="text-sm text-gray-700 mt-1">
-            <span className="font-semibold">Email:</span> {email}
-          </p>
-        </div>
-
-        {/* Role-specific quick actions */}
-        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {profile?.role === "student" && (
-            <>
-              <Link
-                href="/report"
-                className="block bg-blue-600 text-white text-center py-3 rounded hover:bg-blue-700 font-medium"
-              >
-                Report an Issue
-              </Link>
-              <Link
-                href="/my-requests"
-                className="block bg-white border border-gray-300 text-gray-800 text-center py-3 rounded hover:bg-gray-50 font-medium"
-              >
-                My Reports
-              </Link>
-            </>
-          )}
-
-          {profile?.role === "sub_warden" && (
-            <Link
-              href="/sub-warden"
-              className="block bg-blue-600 text-white text-center py-3 rounded hover:bg-blue-700 font-medium"
-            >
-              Confirm Reports
-            </Link>
-          )}
-
-          {profile?.role === "matron_patron" && (
-            <Link
-              href="/matron"
-              className="block bg-blue-600 text-white text-center py-3 rounded hover:bg-blue-700 font-medium"
-            >
-              Review Reports
-            </Link>
-          )}
-
-          {profile?.role === "maintenance" && (
-            <Link
-              href="/maintenance"
-              className="block bg-blue-600 text-white text-center py-3 rounded hover:bg-blue-700 font-medium"
-            >
-              Maintenance Queue
-            </Link>
-          )}
-
-          {profile?.role === "ssf" && (
-            <Link
-              href="/ssf"
-              className="block bg-blue-600 text-white text-center py-3 rounded hover:bg-blue-700 font-medium"
-            >
-              📊 Overview & Statistics
-            </Link>
-          )}
-        </div>
-      </div>
-
-      {/* SSF: Active reports shown inline on the dashboard */}
-      {profile?.role === "ssf" && (
-        <div className="max-w-3xl mx-auto mt-6">
-          <h2 className="text-lg font-semibold text-blue-900 mb-3">
-            Active Reports ({activeAlerts.length})
-          </h2>
-          {activeAlerts.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <p className="text-gray-500 text-sm">
-                ✅ No active reports. All caught up.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {activeAlerts.map((r) => {
-                const isCritical =
-                  r.is_fast_track || r.urgency_level === "critical";
-                return (
-                  <div
-                    key={r.request_id}
-                    className={`bg-white rounded-lg shadow-sm p-5 border-l-4 ${
-                      isCritical
-                        ? "border-l-red-500"
-                        : r.urgency_level === "high"
-                        ? "border-l-orange-400"
-                        : r.urgency_level === "medium"
-                        ? "border-l-blue-400"
-                        : "border-l-gray-300"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      <span className="text-sm font-medium text-gray-500 capitalize">
-                        {r.category?.category_name ?? "Unknown"}
-                      </span>
-                      <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
-                        {r.dormitory?.name ?? "Unknown dorm"}
-                      </span>
-                      {r.is_fast_track && (
-                        <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded font-medium">
-                          FAST-TRACK
-                        </span>
-                      )}
-                      <span
-                        className={`text-xs px-2 py-0.5 rounded font-medium ${
-                          statusColor[r.status] ?? "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {r.status.replace("_", " ").toUpperCase()}
-                      </span>
-                      <span className="text-xs text-gray-400">
-                        {r.urgency_level.toUpperCase()}
-                      </span>
-                    </div>
-
-                    <p className="text-gray-800 mb-3">{r.description}</p>
-                    <Attachments requestId={r.request_id} />
-
-                    <div className="text-xs text-gray-500 space-y-1">
-                      <p>
-                        Reported by{" "}
-                        <strong>{r.student?.full_name ?? "Unknown"}</strong>
-                        {r.student?.contact_number &&
-                          ` · ${r.student.contact_number}`}
-                      </p>
-                      <p>{new Date(r.date_reported).toLocaleString()}</p>
-                    </div>
+          {/* Role actions */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {profile?.role === "student" && (
+              <>
+                <Link
+                  href="/report"
+                  className="group flex items-center gap-3 bg-indigo-600 text-white p-4 rounded-xl hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
+                    <FileWarning className="w-5 h-5" />
                   </div>
-                );
-              })}
-            </div>
-          )}
+                  <div>
+                    <p className="font-semibold text-sm">Report an Issue</p>
+                    <p className="text-xs text-white/80">
+                      Submit a new maintenance report
+                    </p>
+                  </div>
+                </Link>
+                <Link
+                  href="/my-requests"
+                  className="group flex items-center gap-3 bg-white border border-slate-200 text-slate-800 p-4 rounded-xl hover:bg-slate-50 transition-all shadow-sm hover:shadow-md"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
+                    <ClipboardList className="w-5 h-5 text-slate-600" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm">My Reports</p>
+                    <p className="text-xs text-slate-500">
+                      Track your submitted reports
+                    </p>
+                  </div>
+                </Link>
+              </>
+            )}
+
+            {profile?.role === "sub_warden" && (
+              <Link
+                href="/sub-warden"
+                className="group flex items-center gap-3 bg-indigo-600 text-white p-4 rounded-xl hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md"
+              >
+                <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
+                  <CheckCircle2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="font-semibold text-sm">Confirm Reports</p>
+                  <p className="text-xs text-white/80">
+                    Verify issues from your dormitory
+                  </p>
+                </div>
+              </Link>
+            )}
+
+            {profile?.role === "matron_patron" && (
+              <Link
+                href="/matron"
+                className="group flex items-center gap-3 bg-indigo-600 text-white p-4 rounded-xl hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md"
+              >
+                <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
+                  <Send className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="font-semibold text-sm">Review Reports</p>
+                  <p className="text-xs text-white/80">
+                    Approve and forward to Maintenance
+                  </p>
+                </div>
+              </Link>
+            )}
+
+            {profile?.role === "maintenance" && (
+              <Link
+                href="/maintenance"
+                className="group flex items-center gap-3 bg-indigo-600 text-white p-4 rounded-xl hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md"
+              >
+                <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
+                  <Wrench className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="font-semibold text-sm">Maintenance Queue</p>
+                  <p className="text-xs text-white/80">
+                    Work prioritized reports
+                  </p>
+                </div>
+              </Link>
+            )}
+
+            {profile?.role === "ssf" && (
+              <Link
+                href="/ssf"
+                className="group flex items-center gap-3 bg-indigo-600 text-white p-4 rounded-xl hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md"
+              >
+                <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
+                  <BarChart3 className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="font-semibold text-sm">Overview & Statistics</p>
+                  <p className="text-xs text-white/80">
+                    Reports and analysis across all dorms
+                  </p>
+                </div>
+              </Link>
+            )}
+          </div>
         </div>
-      )}
+
+        {/* SSF: Active reports inline */}
+        {profile?.role === "ssf" && (
+          <div className="mt-6">
+            <h2 className="text-lg font-semibold text-slate-900 mb-3 px-1">
+              Active Reports ({activeAlerts.length})
+            </h2>
+            {activeAlerts.length === 0 ? (
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-8 text-center">
+                <p className="text-slate-500 text-sm">
+                  ✅ No active reports. All caught up.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {activeAlerts.map((r) => {
+                  const isCritical =
+                    r.is_fast_track || r.urgency_level === "critical";
+                  return (
+                    <div
+                      key={r.request_id}
+                      className={`bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 border-l-4 ${
+                        isCritical
+                          ? "border-l-red-500"
+                          : r.urgency_level === "high"
+                          ? "border-l-orange-400"
+                          : r.urgency_level === "medium"
+                          ? "border-l-blue-400"
+                          : "border-l-slate-300"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
+                        <span className="text-sm font-medium text-slate-500 capitalize">
+                          {r.category?.category_name ?? "Unknown"}
+                        </span>
+                        <span className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">
+                          {r.dormitory?.name ?? "Unknown dorm"}
+                        </span>
+                        {r.is_fast_track && (
+                          <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-md font-medium">
+                            FAST-TRACK
+                          </span>
+                        )}
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded-md font-medium ${
+                            statusColor[r.status] ?? "bg-slate-100 text-slate-700"
+                          }`}
+                        >
+                          {r.status.replace("_", " ").toUpperCase()}
+                        </span>
+                        <span className="text-xs text-slate-400">
+                          {r.urgency_level.toUpperCase()}
+                        </span>
+                      </div>
+
+                      <p className="text-slate-800 mb-3">{r.description}</p>
+                      <Attachments requestId={r.request_id} />
+
+                      <div className="text-xs text-slate-500 space-y-1">
+                        <p>
+                          Reported by{" "}
+                          <strong>{r.student?.full_name ?? "Unknown"}</strong>
+                          {r.student?.contact_number &&
+                            ` · ${r.student.contact_number}`}
+                        </p>
+                        <p>{new Date(r.date_reported).toLocaleString()}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </main>
   );
 }
