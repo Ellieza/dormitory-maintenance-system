@@ -138,7 +138,7 @@ export default function DashboardPage() {
               href="/ssf"
               className="block bg-blue-600 text-white text-center py-3 rounded hover:bg-blue-700 font-medium"
             >
-              Critical Alerts
+              SSF Overview
             </Link>
           )}
         </div>

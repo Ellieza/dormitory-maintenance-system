@@ -14,6 +14,8 @@ export default function ReportPage() {
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -29,6 +31,38 @@ export default function ReportPage() {
     loadCategories();
   }, []);
 
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    if (!f) {
+      setFile(null);
+      setPreview(null);
+      return;
+    }
+
+    // Size limit: 50 MB
+    if (f.size > 50 * 1024 * 1024) {
+      setError("File is too large. Max 50 MB.");
+      return;
+    }
+
+    // Type limit: images or videos only
+    if (!f.type.startsWith("image/") && !f.type.startsWith("video/")) {
+      setError("Only images or videos are allowed.");
+      return;
+    }
+
+    setError(null);
+    setFile(f);
+
+    // Preview for images only
+    if (f.type.startsWith("image/")) {
+      const url = URL.createObjectURL(f);
+      setPreview(url);
+    } else {
+      setPreview(null);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -37,7 +71,6 @@ export default function ReportPage() {
     try {
       const supabase = createClient();
 
-      // 1. Get current user
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -47,7 +80,6 @@ export default function ReportPage() {
         return;
       }
 
-      // 2. Get user's profile (dormitory + role)
       const { data: profile, error: profileError } = await supabase
         .from("users")
         .select("dormitory_id, role")
@@ -62,7 +94,6 @@ export default function ReportPage() {
         throw new Error("Only students can submit reports");
       }
 
-      // 3. Find the selected category to get default urgency
       const selectedCategory = categories.find(
         (c) => c.category_id === categoryId
       );
@@ -70,7 +101,7 @@ export default function ReportPage() {
 
       const isFastTrack = selectedCategory.category_name === "pest";
 
-      // 4. Insert the maintenance request
+      // 1. Create the maintenance request
       const { data: newRequest, error: insertError } = await supabase
         .from("maintenance_request")
         .insert({
@@ -87,7 +118,31 @@ export default function ReportPage() {
 
       if (insertError) throw insertError;
 
-      // 5. Log the status update (audit trail)
+      // 2. Upload file if provided
+      if (file) {
+        const fileExt = file.name.split(".").pop();
+        const fileName = `${newRequest.request_id}/${Date.now()}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("attachments")
+          .upload(fileName, file);
+
+        if (uploadError) throw uploadError;
+
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("attachments").getPublicUrl(fileName);
+
+        // Insert attachment record
+        const { error: attError } = await supabase.from("attachment").insert({
+          request_id: newRequest.request_id,
+          file_url: publicUrl,
+        });
+
+        if (attError) throw attError;
+      }
+
+      // 3. Log the status update
       await supabase.from("status_update").insert({
         request_id: newRequest.request_id,
         updated_by: user.id,
@@ -96,7 +151,7 @@ export default function ReportPage() {
         notes: "Report submitted",
       });
 
-      // 6. If fast-track, create alerts for maintenance + SSF
+      // 4. If fast-track, create alerts
       if (isFastTrack) {
         const { data: recipients } = await supabase
           .from("users")
@@ -113,7 +168,6 @@ export default function ReportPage() {
         }
       }
 
-      // 7. Done — send them to their requests page
       router.push("/my-requests");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -175,6 +229,38 @@ export default function ReportPage() {
               placeholder="What's the problem? Be specific — location, what you see, how long it's been happening..."
               className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1 text-gray-700">
+              Photo or Video Evidence <span className="text-gray-400 font-normal">(optional — max 50 MB)</span>
+            </label>
+            <input
+              type="file"
+              accept="image/*,video/*"
+              onChange={handleFileChange}
+              className="w-full text-sm border border-gray-300 rounded px-3 py-2 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              A 15–30 second video or a clear photo helps verify the issue faster.
+            </p>
+
+            {preview && (
+              <div className="mt-3">
+                <img
+                  src={preview}
+                  alt="Preview"
+                  className="max-h-48 rounded border border-gray-200"
+                />
+              </div>
+            )}
+
+            {file && file.type.startsWith("video/") && (
+              <p className="mt-2 text-xs text-gray-600">
+                🎥 Video selected: <strong>{file.name}</strong> (
+                {(file.size / 1024 / 1024).toFixed(1)} MB)
+              </p>
+            )}
           </div>
 
           {error && (

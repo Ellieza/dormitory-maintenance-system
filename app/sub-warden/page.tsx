@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import Attachments from "@/components/Attachments";
 
 type RequestRow = {
   request_id: string;
@@ -174,6 +175,7 @@ export default function SubWardenPage() {
                     <p className="text-xs text-gray-400 mt-1">
                       {new Date(r.date_reported).toLocaleString()}
                     </p>
+                    <Attachments requestId={r.request_id} />
                   </div>
                 </div>
 

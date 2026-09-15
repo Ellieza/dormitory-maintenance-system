@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Attachments from "@/components/Attachments";
 
 type RequestRow = {
   request_id: string;
@@ -124,6 +125,7 @@ export default function MyRequestsPage() {
                     <p className="text-xs text-gray-400 mt-2">
                       Reported {new Date(r.date_reported).toLocaleString()}
                     </p>
+                    <Attachments requestId={r.request_id} />
                   </div>
                   <span
                     className={`text-xs px-2 py-1 rounded font-medium whitespace-nowrap ${

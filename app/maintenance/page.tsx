@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import Attachments from "@/components/Attachments";
 
 type RequestRow = {
   request_id: string;
@@ -233,6 +234,7 @@ export default function MaintenancePage() {
                 </div>
 
                 <p className="text-gray-800 mb-3">{r.description}</p>
+                <Attachments requestId={r.request_id} />
 
                 <p className="text-xs text-gray-500 mb-4">
                   Reported by <strong>{r.student?.full_name ?? "Unknown"}</strong>

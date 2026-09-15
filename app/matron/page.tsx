@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import Attachments from "@/components/Attachments";
 
 type RequestRow = {
   request_id: string;
@@ -199,6 +200,7 @@ export default function MatronPage() {
                 </div>
 
                 <p className="text-gray-800 mb-3">{r.description}</p>
+                <Attachments requestId={r.request_id} />
 
                 <div className="text-xs text-gray-500 space-y-1 mb-4">
                   <p>
