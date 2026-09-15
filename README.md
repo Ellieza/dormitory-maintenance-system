@@ -260,7 +260,7 @@ DMS is a solo student project developed for **IS426 — Information Systems Deve
 
 It is one of two systems developed under the same subject — the other being the **UniForce Incident Reporting & Investigation Management System**.
 
-**Author:** Nyah Resis (ID: 22201881)
+**Author:** Nyah Resis 
 
 ---
 
