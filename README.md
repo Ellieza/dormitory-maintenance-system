@@ -16,13 +16,14 @@ A role-based web application that digitizes dormitory maintenance reporting at *
 
 Test accounts (password: `password123`):
 
-| Role | Email |
-|---|---|
-| Student | `test2@example.com` |
-| Sub-Warden | `subwarden1@example.com` |
-| Matron / Patron | `matron1@example.com` |
-| Maintenance Team | `maintenance1@example.com` |
-| Student Support & Facilities | `ssf1@example.com` |
+| Role | Email | Dormitory |
+|---|---|---|
+| Student | `test2@example.com` | Dame Jane Kekedo (DJK) |
+| Sub-Warden | `subwarden1@example.com` | Dame Jane Kekedo (DJK) |
+| Sub-Warden | `subwarden2@example.com` | Poroman South |
+| Matron / Patron | `matron1@example.com` | All dorms |
+| Maintenance Team | `maintenance1@example.com` | All dorms |
+| Student Support & Facilities | `ssf1@example.com` | All dorms |
 
 ---
 
@@ -48,21 +49,41 @@ DMS solves all four without removing the verification step that makes the chain 
 - **Full audit trail** — every status change recorded with timestamp, actor, and note
 - **Parallel fast-track alerts** — pest/critical reports notify Maintenance and SSF immediately, without waiting for the chain to complete
 - **Automatic categorization & urgency** — based on category (e.g., pest defaults to Critical)
+- **Sub-Warden comments** — Sub-Wardens can add a note when confirming an issue, visible to Matron, Maintenance, and the reporting student
 
 ### Evidence & Tracking
 
 - **Photo and video attachments** — students attach evidence (max 50 MB) which every role in the chain can view
 - **Live status tracking** — students see their report move through Submitted → Confirmed → Approved → In Progress → Resolved
 
+### Feedback & Quality
+
+- **Student feedback system** — after a repair is resolved, students rate the work (1–5 stars) and leave an optional comment. Feedback is visible to the Maintenance Team and Matron/Patron.
+
 ### Reporting & Analytics
 
 - **Prioritized maintenance queue** — fast-track and critical reports surface first
-- **SSF statistics dashboard** — reports by category, reports by dormitory, summary cards, and filterable report list for annual maintenance planning
+- **SSF statistics dashboard** — reports by category, reports by dormitory, summary cards, and filterable report list
+- **Annual SSF Report** — screen dashboard with monthly trends + a **print-ready formal PDF** including:
+  - Executive summary and KPI tables
+  - Monthly distribution
+  - Category and dormitory breakdowns
+  - **Dormitory × Issue Type Matrix** for cross-tabulation analysis
+  - **Renovation Priorities** section with auto-generated budget recommendations
+  - Student feedback summary with selected comments
+
+### Security & Access Control
+
+- **University email validation** — signup requires `@student.pnguot.ac.pg` (students/sub-wardens) or `@pnguot.ac.pg` (staff)
+- **TAF and Room Number verification** — required for students to prevent non-residential users from misusing the system
+- **Gender-filtered dormitory selection** — students only see dorms matching their gender
+- **Row Level Security (RLS)** — enforced at the PostgreSQL level
 
 ### Experience
 
+- **Light and dark mode** — theme toggle across the entire system, with preference saved to `localStorage`
 - **Responsive UI** — works on mobile, tablet, and desktop browsers
-- **Modern design system** — Tailwind CSS with a consistent indigo/slate theme, Lucide icons, Inter font
+- **Modern design system** — Tailwind CSS with a consistent indigo/slate theme, Lucide icons, Inter font, and glass-morphism accents
 - **Auto-deploy pipeline** — pushing to `main` triggers a Vercel build automatically
 
 ---
@@ -75,7 +96,7 @@ DMS solves all four without removing the verification step that makes the chain 
 | **Styling** | Tailwind CSS 4, Lucide React icons, Inter (via `next/font`) |
 | **Backend / API** | Next.js Server Components + Client Components |
 | **Database** | PostgreSQL (via Supabase) |
-| **Authentication** | Supabase Auth (email/password) |
+| **Authentication** | Supabase Auth (email/password, domain-restricted) |
 | **File Storage** | Supabase Storage |
 | **Authorization** | PostgreSQL Row Level Security (RLS) policies |
 | **Hosting** | Vercel |
@@ -99,20 +120,24 @@ DMS follows a three-layer architecture:
 dms/
 ├── app/                      # Next.js App Router pages
 │   ├── page.tsx              # Homepage / hero
-│   ├── layout.tsx            # Root layout (font, nav bar)
-│   ├── globals.css           # Global styles + animations
+│   ├── layout.tsx            # Root layout (font, nav bar, dark mode script)
+│   ├── globals.css           # Global styles, animations, print styles
 │   ├── login/                # Login page
-│   ├── signup/               # Signup page (role + dorm selection)
+│   ├── signup/               # Signup with gender/TAF/room/email validation
 │   ├── dashboard/            # Role-aware dashboard
-│   ├── report/               # Student report submission form
-│   ├── my-requests/          # Student report tracking
+│   ├── report/               # Student report submission
+│   ├── my-requests/          # Student report tracking + feedback form
 │   ├── sub-warden/           # Sub-Warden confirmation view
 │   ├── matron/               # Matron/Patron approval + monitoring
 │   ├── maintenance/          # Maintenance prioritized queue
-│   └── ssf/                  # SSF overview & statistics
+│   └── ssf/                  # SSF overview + yearly report
+│       ├── page.tsx          # Overview & statistics
+│       └── yearly/           # Annual report with formal PDF
 ├── components/
-│   ├── NavBar.tsx            # Sticky top navigation
-│   └── Attachments.tsx       # Reusable photo/video display
+│   ├── NavBar.tsx            # Sticky navigation + theme toggle
+│   ├── Attachments.tsx       # Reusable photo/video display
+│   ├── FeedbackBlock.tsx     # Student rating + comment
+│   └── ThemeToggle.tsx       # Floating toggle for auth pages
 ├── lib/
 │   └── supabase/
 │       ├── client.ts         # Supabase client (browser)
@@ -129,23 +154,18 @@ dms/
 
 ## 🗄️ Database Schema
 
-Seven tables handle the complete workflow:
+Eight tables handle the complete workflow:
 
 | Table | Purpose |
 |---|---|
-| `users` | User profiles + roles (extends Supabase `auth.users`) |
+| `users` | User profiles + roles + gender + TAF + room (extends Supabase `auth.users`) |
 | `dormitory` | Dormitory records (boys' and girls' halls) |
 | `category` | Issue categories + default urgency mapping |
-| `maintenance_request` | The actual reports, with confirm/approve/resolve metadata |
+| `maintenance_request` | The actual reports, with confirm/approve/resolve metadata and Sub-Warden comments |
 | `status_update` | Audit trail — every status change with timestamp and actor |
 | `alert` | Fast-track alerts sent to Maintenance and SSF |
 | `attachment` | Photo/video evidence linked to reports |
-
-**Key relationships:**
-
-- A `maintenance_request` belongs to one student, one dormitory, and one category
-- Each request triggers one or more `status_update` records as it moves through the pipeline
-- Fast-track requests generate `alert` records for every Maintenance and SSF user
+| `feedback` | Student rating (1–5) + optional comment after resolution |
 
 ---
 
@@ -153,11 +173,11 @@ Seven tables handle the complete workflow:
 
 | Role | Can do |
 |---|---|
-| **Student** | Submit reports with photo/video evidence, track status |
-| **Sub-Warden** | Confirm reports from their dormitory are genuine |
-| **Matron / Patron** | Review confirmed reports from all dorms, forward to Maintenance, monitor progress |
-| **Maintenance Team** | Work a prioritized queue, update status (Start Work / Mark Resolved) |
-| **Student Support & Facilities** | Monitor critical alerts in real time, analyze reports for maintenance planning |
+| **Student** | Submit reports with photo/video evidence, track status, leave feedback on resolved repairs |
+| **Sub-Warden** | Confirm reports from their dormitory are genuine, add a comment when confirming |
+| **Matron / Patron** | Review confirmed reports from all dorms, forward to Maintenance, monitor progress, view student feedback |
+| **Maintenance Team** | Work a prioritized queue, update status, view student feedback |
+| **Student Support & Facilities** | Monitor critical alerts in real time, analyze reports, generate the annual report |
 
 ---
 
@@ -196,7 +216,7 @@ Open **http://localhost:3000**.
 
 In your Supabase project's **SQL Editor**, run the schema scripts to create:
 
-1. **Tables and enums** — `users`, `dormitory`, `category`, `maintenance_request`, `status_update`, `alert`, `attachment`
+1. **Tables and enums** — `users`, `dormitory`, `category`, `maintenance_request`, `status_update`, `alert`, `attachment`, `feedback`
 2. **Row Level Security policies** — enforce role-based access at the database level
 3. **Seed data** — categories (plumbing, electrical, pest, other) and dormitories
 4. **Storage bucket** — `attachments` (public) for photo/video uploads
@@ -235,7 +255,8 @@ Vercel will build and deploy automatically. Every future push to `main` triggers
 ## 🔒 Security
 
 - **Authentication** handled by Supabase Auth — passwords are never stored or handled by application code
-- **Authorization** enforced at the **database level** via Row Level Security (RLS) policies
+- **Email domain validation** — signups restricted to `@student.pnguot.ac.pg` and `@pnguot.ac.pg`
+- **Authorization** enforced at the database level via Row Level Security (RLS) policies
 - **HTTPS** by default on all Vercel deployments
 - **Secrets** kept in environment variables and never committed to the repository
 - **Data minimization** — only the information needed to route and resolve a report is collected
@@ -260,7 +281,7 @@ DMS is a solo student project developed for **IS426 — Information Systems Deve
 
 It is one of two systems developed under the same subject — the other being the **UniForce Incident Reporting & Investigation Management System**.
 
-**Author:** Nyah Resis 
+**Author:** Nyah Resis
 
 ---
 
