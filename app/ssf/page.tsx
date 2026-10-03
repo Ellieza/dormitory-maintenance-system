@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Attachments from "@/components/Attachments";
+import { Calendar } from "lucide-react";
 import {
   BarChart3,
   ArrowLeft,
@@ -156,18 +157,27 @@ export default function SSFStatsPage() {
           Back to Dashboard
         </Link>
 
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-11 h-11 rounded-xl bg-indigo-100 flex items-center justify-center">
-            <BarChart3 className="w-5 h-5 text-indigo-600" />
+        <div className="flex items-start justify-between gap-3 mb-6 flex-wrap">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-indigo-100 flex items-center justify-center">
+              <BarChart3 className="w-5 h-5 text-indigo-600" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900">
+                SSF — Overview & Statistics
+              </h1>
+              <p className="text-sm text-slate-500">
+                All reports across every dormitory — for maintenance planning
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">
-              SSF — Overview & Statistics
-            </h1>
-            <p className="text-sm text-slate-500">
-              All reports across every dormitory — for maintenance planning
-            </p>
-          </div>
+          <Link
+            href="/ssf/yearly"
+            className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl hover:bg-indigo-700 font-medium text-sm shadow-sm"
+          >
+            <Calendar className="w-4 h-4" />
+            Annual Report
+          </Link>
         </div>
 
         {error && (

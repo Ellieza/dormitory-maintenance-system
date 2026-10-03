@@ -11,6 +11,7 @@ import {
   AlertTriangle,
   User,
   Clock,
+  MessageSquare,
 } from "lucide-react";
 
 type RequestRow = {
@@ -29,6 +30,7 @@ export default function SubWardenPage() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [comments, setComments] = useState<Record<string, string>>({});
   const router = useRouter();
 
   async function loadRequests() {
@@ -85,12 +87,15 @@ export default function SubWardenPage() {
 
     if (!user) return;
 
+    const comment = comments[requestId]?.trim() || null;
+
     const { error: updateError } = await supabase
       .from("maintenance_request")
       .update({
         status: "confirmed",
         confirmed_by: user.id,
         confirmed_at: new Date().toISOString(),
+        sub_warden_comment: comment,
       })
       .eq("request_id", requestId);
 
@@ -105,7 +110,9 @@ export default function SubWardenPage() {
       updated_by: user.id,
       old_status: "submitted",
       new_status: "confirmed",
-      notes: "Confirmed by Sub-Warden",
+      notes: comment
+        ? `Confirmed by Sub-Warden: ${comment}`
+        : "Confirmed by Sub-Warden",
     });
 
     setRequests((prev) => prev.filter((r) => r.request_id !== requestId));
@@ -210,6 +217,26 @@ export default function SubWardenPage() {
                     <Clock className="w-3 h-3" />
                     {new Date(r.date_reported).toLocaleString()}
                   </span>
+                </div>
+
+                {/* NEW: Comment field */}
+                <div className="mb-3">
+                  <label className="flex items-center gap-1.5 text-xs font-medium text-slate-600 mb-1.5">
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    Add a note (optional)
+                  </label>
+                  <textarea
+                    value={comments[r.request_id] ?? ""}
+                    onChange={(e) =>
+                      setComments((prev) => ({
+                        ...prev,
+                        [r.request_id]: e.target.value,
+                      }))
+                    }
+                    placeholder="e.g. Verified with student — the pipe under the sink is indeed leaking."
+                    rows={2}
+                    className="w-full text-sm border border-slate-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 resize-none"
+                  />
                 </div>
 
                 <button

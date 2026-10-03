@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Attachments from "@/components/Attachments";
+import FeedbackBlock from "@/components/FeedbackBlock";
 import {
   Send,
   ArrowLeft,
@@ -16,6 +17,7 @@ import {
 
 type RequestRow = {
   request_id: string;
+  student_id:string;
   description: string;
   status: string;
   urgency_level: string;
@@ -74,7 +76,7 @@ export default function MatronPage() {
     }
 
     const selectFields =
-      "request_id, description, status, urgency_level, is_fast_track, date_reported, confirmed_at, approved_at, date_resolved, student:student_id (full_name, contact_number), dormitory:dormitory_id (name), category:category_id (category_name), confirmer:confirmed_by (full_name)";
+      "request_id, student_id, description, status, urgency_level, is_fast_track, date_reported, confirmed_at, approved_at, date_resolved, student:student_id (full_name, contact_number), dormitory:dormitory_id (name), category:category_id (category_name), confirmer:confirmed_by (full_name)";
 
     const { data: pendingData, error: pendingErr } = await supabase
       .from("maintenance_request")
@@ -317,6 +319,12 @@ export default function MatronPage() {
                 <p className="text-slate-800 text-sm leading-relaxed">
                   {r.description}
                 </p>
+                {r.status === "resolved" && (
+                  <FeedbackBlock
+                    requestId={r.request_id}
+                    studentId={r.student_id}
+                  />
+                )}
                 <p className="text-xs text-slate-500 mt-2">
                   By {r.student?.full_name ?? "Unknown"}
                   {r.approved_at &&

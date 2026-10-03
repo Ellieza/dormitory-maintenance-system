@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Attachments from "@/components/Attachments";
+import FeedbackBlock from "@/components/FeedbackBlock";
 import {
   ClipboardList,
   Plus,
@@ -14,6 +15,7 @@ import {
 
 type RequestRow = {
   request_id: string;
+  student_id: string;
   description: string;
   status: string;
   urgency_level: string;
@@ -65,7 +67,7 @@ export default function MyRequestsPage() {
       const { data } = await supabase
         .from("maintenance_request")
         .select(
-          "request_id, description, status, urgency_level, is_fast_track, date_reported, category:category_id (category_name)"
+          "request_id, student_id, description, status, urgency_level, is_fast_track, date_reported, category:category_id (category_name)"
         )
         .eq("student_id", user.id)
         .order("date_reported", { ascending: false });
@@ -186,6 +188,14 @@ export default function MyRequestsPage() {
                 </p>
 
                 <Attachments requestId={r.request_id} />
+
+                {/* Feedback — only for resolved reports */}
+                {r.status === "resolved" && (
+                  <FeedbackBlock
+                    requestId={r.request_id}
+                    studentId={r.student_id}
+                  />
+                )}
 
                 <p className="text-xs text-slate-400 mt-3">
                   Reported {new Date(r.date_reported).toLocaleString()}
