@@ -14,13 +14,10 @@ export default function NavBar() {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Load saved theme on mount
+  // Load theme from localStorage (defaults to light if none saved)
   useEffect(() => {
     const saved = localStorage.getItem("dms-theme") as "light" | "dark" | null;
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    ).matches;
-    const initial = saved ?? (prefersDark ? "dark" : "light");
+    const initial = saved ?? "light";
     setTheme(initial);
     document.documentElement.classList.toggle("dark", initial === "dark");
   }, []);
@@ -32,7 +29,6 @@ export default function NavBar() {
     document.documentElement.classList.toggle("dark", next === "dark");
   }
 
-  // Load user info
   useEffect(() => {
     const supabase = createClient();
     async function load() {
@@ -60,6 +56,11 @@ export default function NavBar() {
   }, [pathname]);
 
   async function handleLogout() {
+    // Reset theme so the next user starts in light mode
+    localStorage.removeItem("dms-theme");
+    document.documentElement.classList.remove("dark");
+    setTheme("light");
+
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/login");

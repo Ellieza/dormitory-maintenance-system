@@ -9,10 +9,7 @@ export default function ThemeToggle() {
 
   useEffect(() => {
     const saved = localStorage.getItem("dms-theme") as "light" | "dark" | null;
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    ).matches;
-    const initial = saved ?? (prefersDark ? "dark" : "light");
+    const initial = saved ?? "light";
     setTheme(initial);
     document.documentElement.classList.toggle("dark", initial === "dark");
     setMounted(true);
