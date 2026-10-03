@@ -14,12 +14,14 @@ import {
   BarChart3,
   User,
   Mail,
+  Home,
 } from "lucide-react";
 
 type Profile = {
   full_name: string;
   role: string;
   dormitory_id: string | null;
+  dormitory: { name: string } | null;
 };
 
 type ActiveReport = {
@@ -79,11 +81,11 @@ export default function DashboardPage() {
 
       const { data } = await supabase
         .from("users")
-        .select("full_name, role, dormitory_id")
+        .select("full_name, role, dormitory_id, dormitory:dormitory_id (name)")
         .eq("user_id", user.id)
         .single();
 
-      setProfile(data);
+      setProfile(data as unknown as Profile);
 
       if (data?.role === "ssf") {
         const { data: alerts } = await supabase
@@ -113,6 +115,10 @@ export default function DashboardPage() {
     );
   }
 
+  const showDorm =
+    (profile?.role === "student" || profile?.role === "sub_warden") &&
+    profile?.dormitory?.name;
+
   return (
     <main className="min-h-screen p-4 sm:p-8">
       <div className="max-w-3xl mx-auto animate-fade-in">
@@ -128,29 +134,51 @@ export default function DashboardPage() {
             </span>
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-            <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-100 dark:border-slate-700/50">
+          {/* Info tiles */}
+          <div
+            className={`grid grid-cols-1 gap-3 mb-6 ${
+              showDorm ? "sm:grid-cols-3" : "sm:grid-cols-2"
+            }`}
+          >
+            <div className="flex items-start gap-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-100 dark:border-slate-700/50">
               <div className="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-950/40 flex items-center justify-center flex-shrink-0">
                 <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
               </div>
-              <div className="min-w-0">
+              <div className="flex-1 min-w-0">
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                   ROLE
                 </p>
-                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
+                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 break-words">
                   {roleLabels[profile?.role ?? ""] ?? profile?.role}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-100 dark:border-slate-700/50">
+
+            {showDorm && (
+              <div className="flex items-start gap-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-100 dark:border-slate-700/50">
+                <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center flex-shrink-0">
+                  <Home className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                    DORMITORY
+                  </p>
+                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 break-words leading-snug">
+                    {profile?.dormitory?.name}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-start gap-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-100 dark:border-slate-700/50">
               <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-950/40 flex items-center justify-center flex-shrink-0">
                 <Mail className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               </div>
-              <div className="min-w-0">
+              <div className="flex-1 min-w-0">
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                   EMAIL
                 </p>
-                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
+                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 break-all leading-snug">
                   {email}
                 </p>
               </div>
@@ -163,7 +191,7 @@ export default function DashboardPage() {
               <>
                 <Link
                   href="/report"
-                  className="group flex items-center gap-3 bg-indigo-600 text-white p-4 rounded-xl hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md"
+                  className="group flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-4 rounded-xl hover:from-indigo-700 hover:to-blue-700 transition-all shadow-lg shadow-indigo-500/20 hover:shadow-xl hover:shadow-indigo-500/30"
                 >
                   <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
                     <FileWarning className="w-5 h-5" />
@@ -195,7 +223,7 @@ export default function DashboardPage() {
             {profile?.role === "sub_warden" && (
               <Link
                 href="/sub-warden"
-                className="group flex items-center gap-3 bg-indigo-600 text-white p-4 rounded-xl hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md"
+                className="group flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-4 rounded-xl hover:from-indigo-700 hover:to-blue-700 transition-all shadow-lg shadow-indigo-500/20 hover:shadow-xl hover:shadow-indigo-500/30"
               >
                 <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
                   <CheckCircle2 className="w-5 h-5" />
@@ -212,7 +240,7 @@ export default function DashboardPage() {
             {profile?.role === "matron_patron" && (
               <Link
                 href="/matron"
-                className="group flex items-center gap-3 bg-indigo-600 text-white p-4 rounded-xl hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md"
+                className="group flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-4 rounded-xl hover:from-indigo-700 hover:to-blue-700 transition-all shadow-lg shadow-indigo-500/20 hover:shadow-xl hover:shadow-indigo-500/30"
               >
                 <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
                   <Send className="w-5 h-5" />
@@ -229,7 +257,7 @@ export default function DashboardPage() {
             {profile?.role === "maintenance" && (
               <Link
                 href="/maintenance"
-                className="group flex items-center gap-3 bg-indigo-600 text-white p-4 rounded-xl hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md"
+                className="group flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-4 rounded-xl hover:from-indigo-700 hover:to-blue-700 transition-all shadow-lg shadow-indigo-500/20 hover:shadow-xl hover:shadow-indigo-500/30"
               >
                 <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
                   <Wrench className="w-5 h-5" />
@@ -246,7 +274,7 @@ export default function DashboardPage() {
             {profile?.role === "ssf" && (
               <Link
                 href="/ssf"
-                className="group flex items-center gap-3 bg-indigo-600 text-white p-4 rounded-xl hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md"
+                className="group flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-4 rounded-xl hover:from-indigo-700 hover:to-blue-700 transition-all shadow-lg shadow-indigo-500/20 hover:shadow-xl hover:shadow-indigo-500/30"
               >
                 <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
                   <BarChart3 className="w-5 h-5" />
