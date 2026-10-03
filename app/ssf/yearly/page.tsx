@@ -187,7 +187,6 @@ export default function YearlyReportPage() {
     year: "numeric",
   });
 
-  // Cross-tabulation matrix
   const allCategories = useMemo(
     () => categoryStats.map((s) => s.name),
     [categoryStats]
@@ -243,7 +242,9 @@ export default function YearlyReportPage() {
   if (loading) {
     return (
       <main className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-slate-500 text-sm">Loading...</div>
+        <div className="animate-pulse text-slate-500 dark:text-slate-400 text-sm">
+          Loading...
+        </div>
       </main>
     );
   }
@@ -256,7 +257,7 @@ export default function YearlyReportPage() {
           <div className="no-print">
             <Link
               href="/ssf"
-              className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-indigo-600 mb-4 transition-colors"
+              className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 mb-4 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to Overview
@@ -265,14 +266,14 @@ export default function YearlyReportPage() {
 
           <div className="flex items-start justify-between gap-3 mb-6 flex-wrap">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-xl bg-indigo-100 flex items-center justify-center">
-                <Calendar className="w-5 h-5 text-indigo-600" />
+              <div className="w-11 h-11 rounded-xl bg-indigo-100 dark:bg-indigo-950/40 flex items-center justify-center">
+                <Calendar className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-slate-900">
+                <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                   Annual Maintenance Report — {year}
                 </h1>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-slate-500 dark:text-slate-400">
                   PNGUoT Dormitory Maintenance System
                 </p>
               </div>
@@ -282,7 +283,7 @@ export default function YearlyReportPage() {
               <select
                 value={year}
                 onChange={(e) => setYear(parseInt(e.target.value))}
-                className="text-sm border border-slate-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
+                className="text-sm bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
               >
                 {availableYears.map((y) => (
                   <option key={y} value={y}>
@@ -292,7 +293,7 @@ export default function YearlyReportPage() {
               </select>
               <button
                 onClick={() => window.print()}
-                className="inline-flex items-center gap-1.5 bg-indigo-600 text-white px-4 py-2 rounded-xl hover:bg-indigo-700 font-medium text-sm shadow-sm"
+                className="inline-flex items-center gap-1.5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-4 py-2 rounded-xl hover:from-indigo-700 hover:to-blue-700 font-medium text-sm shadow-lg shadow-indigo-500/20 hover:shadow-xl transition-all"
               >
                 <Printer className="w-4 h-4" />
                 Print / Save as PDF
@@ -301,60 +302,62 @@ export default function YearlyReportPage() {
           </div>
 
           {error && (
-            <div className="text-sm text-red-700 bg-red-50 border border-red-200 p-3 rounded-xl mb-4">
+            <div className="text-sm text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 p-3 rounded-xl mb-4">
               {error}
             </div>
           )}
 
           {total === 0 ? (
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-12 text-center">
-              <FileText className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-600 font-medium">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-12 text-center">
+              <FileText className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+              <p className="text-slate-600 dark:text-slate-400 font-medium">
                 No reports found for {year}
               </p>
             </div>
           ) : (
             <>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-4 border-l-4 border-l-blue-500">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-4 border-l-4 border-l-blue-500">
                   <div className="flex items-center gap-1.5 mb-1">
-                    <FileText className="w-3.5 h-3.5 text-blue-600" />
-                    <p className="text-xs text-slate-500 font-medium">
+                    <FileText className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                       TOTAL REPORTS
                     </p>
                   </div>
-                  <p className="text-3xl font-bold text-slate-900">{total}</p>
+                  <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+                    {total}
+                  </p>
                 </div>
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-4 border-l-4 border-l-emerald-500">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-4 border-l-4 border-l-emerald-500">
                   <div className="flex items-center gap-1.5 mb-1">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                    <p className="text-xs text-slate-500 font-medium">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                       RESOLVED
                     </p>
                   </div>
-                  <p className="text-3xl font-bold text-emerald-700">
+                  <p className="text-3xl font-bold text-emerald-700 dark:text-emerald-400">
                     {resolvedCount}
                   </p>
                 </div>
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-4 border-l-4 border-l-amber-500">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-4 border-l-4 border-l-amber-500">
                   <div className="flex items-center gap-1.5 mb-1">
-                    <Activity className="w-3.5 h-3.5 text-amber-600" />
-                    <p className="text-xs text-slate-500 font-medium">
+                    <Activity className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                       ACTIVE
                     </p>
                   </div>
-                  <p className="text-3xl font-bold text-amber-700">
+                  <p className="text-3xl font-bold text-amber-700 dark:text-amber-400">
                     {activeCount}
                   </p>
                 </div>
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-4 border-l-4 border-l-red-500">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-4 border-l-4 border-l-red-500">
                   <div className="flex items-center gap-1.5 mb-1">
-                    <AlertTriangle className="w-3.5 h-3.5 text-red-600" />
-                    <p className="text-xs text-slate-500 font-medium">
+                    <AlertTriangle className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                       CRITICAL
                     </p>
                   </div>
-                  <p className="text-3xl font-bold text-red-700">
+                  <p className="text-3xl font-bold text-red-700 dark:text-red-400">
                     {criticalCount}
                   </p>
                 </div>
@@ -396,8 +399,8 @@ export default function YearlyReportPage() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 mb-8">
-                <h2 className="text-base font-semibold text-slate-900 mb-4">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-5 mb-8">
+                <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100 mb-4">
                   Reports by Month
                 </h2>
                 <div className="flex items-end justify-between gap-1 h-40">
@@ -409,18 +412,18 @@ export default function YearlyReportPage() {
                         key={label}
                         className="flex-1 flex flex-col items-center justify-end h-full"
                       >
-                        <span className="text-xs font-medium text-slate-600 mb-1">
+                        <span className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
                           {count > 0 ? count : ""}
                         </span>
                         <div
                           className={`w-full rounded-t-md transition-all ${
                             count > 0
                               ? "bg-gradient-to-t from-indigo-500 to-blue-400"
-                              : "bg-slate-200"
+                              : "bg-slate-200 dark:bg-slate-700"
                           }`}
                           style={{ height: `${height}%` }}
                         />
-                        <span className="text-[10px] text-slate-500 mt-1">
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
                           {label}
                         </span>
                       </div>
@@ -430,17 +433,17 @@ export default function YearlyReportPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5">
-                  <h2 className="text-base font-semibold text-slate-900 mb-4">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-5">
+                  <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100 mb-4">
                     Reports by Category
                   </h2>
                   <div className="space-y-3">
                     {categoryStats.map((s) => (
                       <div key={s.name} className="flex items-center gap-3">
-                        <span className="w-24 text-sm text-slate-700 capitalize truncate">
+                        <span className="w-24 text-sm text-slate-700 dark:text-slate-300 capitalize truncate">
                           {s.name}
                         </span>
-                        <div className="flex-1 bg-slate-100 rounded-lg h-5 overflow-hidden">
+                        <div className="flex-1 bg-slate-100 dark:bg-slate-800 rounded-lg h-5 overflow-hidden">
                           <div
                             className="bg-gradient-to-r from-indigo-500 to-blue-500 h-full rounded-lg"
                             style={{
@@ -448,7 +451,7 @@ export default function YearlyReportPage() {
                             }}
                           />
                         </div>
-                        <span className="w-8 text-sm text-slate-700 text-right font-semibold">
+                        <span className="w-8 text-sm text-slate-700 dark:text-slate-300 text-right font-semibold">
                           {s.count}
                         </span>
                       </div>
@@ -456,17 +459,17 @@ export default function YearlyReportPage() {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5">
-                  <h2 className="text-base font-semibold text-slate-900 mb-4">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-5">
+                  <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100 mb-4">
                     Reports by Dormitory (top 10)
                   </h2>
                   <div className="space-y-3">
                     {dormStats.slice(0, 10).map((s) => (
                       <div key={s.name} className="flex items-center gap-3">
-                        <span className="w-32 text-sm text-slate-700 truncate">
+                        <span className="w-32 text-sm text-slate-700 dark:text-slate-300 truncate">
                           {s.name}
                         </span>
-                        <div className="flex-1 bg-slate-100 rounded-lg h-5 overflow-hidden">
+                        <div className="flex-1 bg-slate-100 dark:bg-slate-800 rounded-lg h-5 overflow-hidden">
                           <div
                             className="bg-gradient-to-r from-indigo-500 to-purple-500 h-full rounded-lg"
                             style={{
@@ -474,7 +477,7 @@ export default function YearlyReportPage() {
                             }}
                           />
                         </div>
-                        <span className="w-8 text-sm text-slate-700 text-right font-semibold">
+                        <span className="w-8 text-sm text-slate-700 dark:text-slate-300 text-right font-semibold">
                           {s.count}
                         </span>
                       </div>
@@ -484,8 +487,8 @@ export default function YearlyReportPage() {
               </div>
 
               {yearFeedback.length > 0 && (
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 mb-8">
-                  <h2 className="text-base font-semibold text-slate-900 mb-4">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-5 mb-8">
+                  <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100 mb-4">
                     Recent Student Feedback
                   </h2>
                   <div className="space-y-3">
@@ -508,16 +511,16 @@ export default function YearlyReportPage() {
                                 className={`w-3.5 h-3.5 ${
                                   s <= f.rating
                                     ? "fill-amber-400 text-amber-400"
-                                    : "text-slate-300"
+                                    : "text-slate-300 dark:text-slate-600"
                                 }`}
                               />
                             ))}
-                            <span className="text-xs text-slate-500 ml-1">
+                            <span className="text-xs text-slate-500 dark:text-slate-400 ml-1">
                               {f.rating}/5
                             </span>
                           </div>
                           {f.comment && (
-                            <p className="text-sm text-slate-700 italic">
+                            <p className="text-sm text-slate-700 dark:text-slate-300 italic">
                               &ldquo;{f.comment}&rdquo;
                             </p>
                           )}
@@ -527,7 +530,7 @@ export default function YearlyReportPage() {
                 </div>
               )}
 
-              <div className="text-center text-xs text-slate-400 pb-8">
+              <div className="text-center text-xs text-slate-400 dark:text-slate-500 pb-8">
                 Generated by DMS · PNG University of Technology ·{" "}
                 {new Date().toLocaleDateString()}
               </div>
@@ -578,14 +581,15 @@ export default function YearlyReportPage() {
               </div>
             </section>
 
-            {/* 1. Executive Summary */}
             <section className="mb-10">
               <h2 className="text-[13pt] font-bold border-b border-black pb-1 mb-4">
                 1. Executive Summary
               </h2>
               <p className="text-[11pt] leading-relaxed text-justify mb-3">
                 During the {year} calendar year, a total of{" "}
-                <strong>{total} maintenance report{total !== 1 ? "s" : ""}</strong>{" "}
+                <strong>
+                  {total} maintenance report{total !== 1 ? "s" : ""}
+                </strong>{" "}
                 {total === 1 ? "was" : "were"} filed by students across
                 PNGUoT-managed dormitories. Of these,{" "}
                 <strong>{resolvedCount}</strong>{" "}
@@ -638,7 +642,6 @@ export default function YearlyReportPage() {
               )}
             </section>
 
-            {/* 2. KPIs */}
             <section className="mb-10">
               <h2 className="text-[13pt] font-bold border-b border-black pb-1 mb-4">
                 2. Key Performance Indicators
@@ -701,7 +704,6 @@ export default function YearlyReportPage() {
               </table>
             </section>
 
-            {/* 3. Monthly */}
             <section className="mb-10">
               <h2 className="text-[13pt] font-bold border-b border-black pb-1 mb-4">
                 3. Reports by Month
@@ -753,7 +755,6 @@ export default function YearlyReportPage() {
 
             <div className="page-break"></div>
 
-            {/* 4. Categories */}
             <section className="mb-10">
               <h2 className="text-[13pt] font-bold border-b border-black pb-1 mb-4">
                 4. Reports by Category
@@ -799,7 +800,6 @@ export default function YearlyReportPage() {
               </table>
             </section>
 
-            {/* 5. Dorms */}
             <section className="mb-10">
               <h2 className="text-[13pt] font-bold border-b border-black pb-1 mb-4">
                 5. Reports by Dormitory
@@ -836,7 +836,6 @@ export default function YearlyReportPage() {
 
             <div className="page-break"></div>
 
-            {/* 6. Matrix */}
             <section className="mb-10">
               <h2 className="text-[13pt] font-bold border-b border-black pb-1 mb-4">
                 6. Dormitory × Issue Type Matrix
@@ -925,7 +924,6 @@ export default function YearlyReportPage() {
 
             <div className="page-break"></div>
 
-            {/* 7. Renovation Priorities */}
             <section className="mb-10">
               <h2 className="text-[13pt] font-bold border-b border-black pb-1 mb-4">
                 7. Renovation Priorities
@@ -1062,7 +1060,6 @@ export default function YearlyReportPage() {
 
             <div className="page-break"></div>
 
-            {/* 8. Feedback */}
             <section className="mb-10">
               <h2 className="text-[13pt] font-bold border-b border-black pb-1 mb-4">
                 8. Student Feedback Summary
@@ -1150,7 +1147,6 @@ export default function YearlyReportPage() {
               )}
             </section>
 
-            {/* 9. Conclusions */}
             <section className="mb-10">
               <h2 className="text-[13pt] font-bold border-b border-black pb-1 mb-4">
                 9. Conclusions & Recommendations

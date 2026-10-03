@@ -4,7 +4,17 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Building2, User, Mail, Lock, ArrowRight, AlertCircle, Hash, DoorOpen } from "lucide-react";
+import {
+  Building2,
+  User,
+  Mail,
+  Lock,
+  ArrowRight,
+  AlertCircle,
+  Hash,
+  DoorOpen,
+} from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 
 type Dormitory = {
   dormitory_id: string;
@@ -12,10 +22,7 @@ type Dormitory = {
   type: "boys" | "girls";
 };
 
-// Which roles are students (need TAF, room, student email)
 const STUDENT_ROLES = ["student", "sub_warden"];
-
-// Which roles need a dorm selection
 const DORM_ROLES = ["student", "sub_warden"];
 
 export default function SignupPage() {
@@ -30,13 +37,11 @@ export default function SignupPage() {
   const [dormitories, setDormitories] = useState<Dormitory[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   const router = useRouter();
 
   const isStudentRole = STUDENT_ROLES.includes(role);
   const needsDorm = DORM_ROLES.includes(role);
 
-  // Load all dormitories once
   useEffect(() => {
     const supabase = createClient();
     async function loadDorms() {
@@ -49,25 +54,23 @@ export default function SignupPage() {
     loadDorms();
   }, []);
 
-  // Reset dormitory when gender changes
   useEffect(() => {
     setDormitoryId("");
   }, [gender]);
 
-  // Filter dorms by selected gender
   const filteredDorms = gender
     ? dormitories.filter((d) =>
         gender === "male" ? d.type === "boys" : d.type === "girls"
       )
     : [];
 
-  // Validate email matches the role's expected domain
   function validateEmail(email: string, forStudent: boolean): boolean {
     const trimmed = email.trim().toLowerCase();
-    if (forStudent) {
-      return trimmed.endsWith("@student.pnguot.ac.pg");
-    }
-    return trimmed.endsWith("@pnguot.ac.pg") && !trimmed.endsWith("@student.pnguot.ac.pg");
+    if (forStudent) return trimmed.endsWith("@student.pnguot.ac.pg");
+    return (
+      trimmed.endsWith("@pnguot.ac.pg") &&
+      !trimmed.endsWith("@student.pnguot.ac.pg")
+    );
   }
 
   async function handleSignup(e: React.FormEvent) {
@@ -75,7 +78,6 @@ export default function SignupPage() {
     setLoading(true);
     setError(null);
 
-    // ---- Frontend validations ----
     if (!validateEmail(email, isStudentRole)) {
       setError(
         isStudentRole
@@ -85,19 +87,18 @@ export default function SignupPage() {
       setLoading(false);
       return;
     }
-
     if (isStudentRole && !gender) {
       setError("Please select your gender.");
       setLoading(false);
       return;
     }
-
     if (isStudentRole && (!tafNumber.trim() || !roomNumber.trim())) {
-      setError("TAF number and room number are required for students and sub-wardens.");
+      setError(
+        "TAF number and room number are required for students and sub-wardens."
+      );
       setLoading(false);
       return;
     }
-
     if (needsDorm && !dormitoryId) {
       setError("Please select your dormitory.");
       setLoading(false);
@@ -105,8 +106,6 @@ export default function SignupPage() {
     }
 
     const supabase = createClient();
-
-    // ---- Create the auth user ----
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: email.trim().toLowerCase(),
       password,
@@ -117,14 +116,12 @@ export default function SignupPage() {
       setLoading(false);
       return;
     }
-
     if (!authData.user) {
       setError("Signup failed — no user returned");
       setLoading(false);
       return;
     }
 
-    // ---- Insert profile ----
     const { error: profileError } = await supabase.from("users").insert({
       user_id: authData.user.id,
       full_name: fullName.trim(),
@@ -145,52 +142,63 @@ export default function SignupPage() {
     router.push("/dashboard");
   }
 
+  const inputClass =
+    "w-full pl-10 pr-3 py-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500";
+  const selectClass =
+    "w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 text-sm text-slate-900 dark:text-slate-100";
+
   return (
-    <main className="min-h-screen flex items-center justify-center p-4 py-8">
-      <div className="w-full max-w-md animate-fade-in">
+    <main className="relative min-h-screen flex items-center justify-center p-4 py-8 overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950">
+      <ThemeToggle />
+
+      <div className="absolute top-1/4 -left-16 w-72 h-72 rounded-full bg-indigo-400/10 dark:bg-indigo-500/10 blur-3xl animate-float pointer-events-none" />
+      <div
+        className="absolute bottom-1/4 -right-16 w-80 h-80 rounded-full bg-purple-400/10 dark:bg-purple-500/10 blur-3xl animate-float pointer-events-none"
+        style={{ animationDelay: "1.5s" }}
+      />
+
+      <div className="relative w-full max-w-md animate-fade-in">
         <Link
           href="/"
           className="flex items-center justify-center gap-2 mb-6 group"
         >
-          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shadow-md shadow-indigo-500/20 group-hover:shadow-lg transition-shadow">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-blue-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:shadow-xl transition-all group-hover:scale-105">
             <Building2 className="w-6 h-6 text-white" />
           </div>
         </Link>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-8">
-          <h1 className="text-2xl font-bold text-slate-900 text-center mb-1">
+        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-200/60 dark:border-slate-700/60 p-8">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 text-center mb-1">
             Create your account
           </h1>
-          <p className="text-sm text-slate-500 text-center mb-6">
+          <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-6">
             Dormitory Maintenance System · PNGUoT
           </p>
 
           <form onSubmit={handleSignup} className="space-y-4">
-            {/* Full Name */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                 Full Name
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
                 <input
                   type="text"
                   placeholder="Your full name"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required
-                  className="w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 text-sm"
+                  className={inputClass}
                 />
               </div>
             </div>
 
-            {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                 University Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
                 <input
                   type="email"
                   placeholder={
@@ -201,23 +209,22 @@ export default function SignupPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 text-sm"
+                  className={inputClass}
                 />
               </div>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 {isStudentRole
                   ? "Must end with @student.pnguot.ac.pg"
                   : "Must end with @pnguot.ac.pg"}
               </p>
             </div>
 
-            {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
                 <input
                   type="password"
                   placeholder="Min 6 characters"
@@ -225,14 +232,13 @@ export default function SignupPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 text-sm"
+                  className={inputClass}
                 />
               </div>
             </div>
 
-            {/* Role */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                 Role
               </label>
               <select
@@ -244,7 +250,7 @@ export default function SignupPage() {
                   setRoomNumber("");
                   setDormitoryId("");
                 }}
-                className="w-full border border-slate-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 text-sm"
+                className={selectClass}
               >
                 <option value="student">Student</option>
                 <option value="sub_warden">Sub-Warden</option>
@@ -254,12 +260,10 @@ export default function SignupPage() {
               </select>
             </div>
 
-            {/* Student-only fields: Gender, TAF, Room, Dorm */}
             {isStudentRole && (
               <>
-                {/* Gender */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                     Gender
                   </label>
                   <select
@@ -268,7 +272,7 @@ export default function SignupPage() {
                       setGender(e.target.value as "" | "male" | "female")
                     }
                     required
-                    className="w-full border border-slate-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 text-sm"
+                    className={selectClass}
                   >
                     <option value="">Select gender</option>
                     <option value="male">Male</option>
@@ -276,45 +280,42 @@ export default function SignupPage() {
                   </select>
                 </div>
 
-                {/* TAF Number */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                     TAF Number
                   </label>
                   <div className="relative">
-                    <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
                     <input
                       type="text"
                       placeholder="e.g. 22201881"
                       value={tafNumber}
                       onChange={(e) => setTafNumber(e.target.value)}
                       required
-                      className="w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 text-sm"
+                      className={inputClass}
                     />
                   </div>
                 </div>
 
-                {/* Room Number */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                     Room Number
                   </label>
                   <div className="relative">
-                    <DoorOpen className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <DoorOpen className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
                     <input
                       type="text"
                       placeholder="e.g. 12B"
                       value={roomNumber}
                       onChange={(e) => setRoomNumber(e.target.value)}
                       required
-                      className="w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 text-sm"
+                      className={inputClass}
                     />
                   </div>
                 </div>
 
-                {/* Dormitory (filtered by gender) */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                     Dormitory
                   </label>
                   <select
@@ -322,7 +323,7 @@ export default function SignupPage() {
                     onChange={(e) => setDormitoryId(e.target.value)}
                     required
                     disabled={!gender}
-                    className="w-full border border-slate-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 text-sm disabled:bg-slate-100 disabled:cursor-not-allowed"
+                    className={`${selectClass} disabled:bg-slate-100 dark:disabled:bg-slate-800/50 disabled:cursor-not-allowed disabled:text-slate-400`}
                   >
                     <option value="">
                       {gender ? "Select your dormitory" : "Select gender first"}
@@ -333,17 +334,12 @@ export default function SignupPage() {
                       </option>
                     ))}
                   </select>
-                  {gender && filteredDorms.length === 0 && (
-                    <p className="text-xs text-amber-600 mt-1">
-                      No dormitories available for this gender.
-                    </p>
-                  )}
                 </div>
               </>
             )}
 
             {error && (
-              <div className="flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 p-3 rounded-xl">
+              <div className="flex items-start gap-2 text-sm text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 p-3 rounded-xl">
                 <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                 <span>{error}</span>
               </div>
@@ -352,7 +348,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={loading}
-              className="group w-full inline-flex items-center justify-center gap-2 bg-indigo-600 text-white py-3 rounded-xl hover:bg-indigo-700 disabled:opacity-50 font-medium shadow-sm hover:shadow-md transition-all"
+              className="group w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white py-3 rounded-xl hover:from-indigo-700 hover:to-blue-700 disabled:opacity-50 font-medium shadow-lg shadow-indigo-500/20 hover:shadow-xl hover:shadow-indigo-500/30 transition-all"
             >
               {loading ? "Creating account..." : "Sign Up"}
               {!loading && (
@@ -361,11 +357,11 @@ export default function SignupPage() {
             </button>
           </form>
 
-          <p className="text-center text-sm text-slate-600 mt-6">
+          <p className="text-center text-sm text-slate-600 dark:text-slate-400 mt-6">
             Already have an account?{" "}
             <Link
               href="/login"
-              className="text-indigo-600 hover:text-indigo-700 font-medium hover:underline"
+              className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium hover:underline"
             >
               Log in
             </Link>

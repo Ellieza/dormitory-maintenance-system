@@ -43,14 +43,14 @@ export default function Attachments({ requestId }: { requestId: string }) {
               <video
                 src={a.file_url}
                 controls
-                className="max-h-64 rounded border border-gray-200"
+                className="max-h-64 rounded border border-gray-200 dark:border-slate-700"
               />
             ) : (
               <a href={a.file_url} target="_blank" rel="noopener noreferrer">
                 <img
                   src={a.file_url}
                   alt="Attachment"
-                  className="max-h-48 rounded border border-gray-200 hover:opacity-90 cursor-pointer"
+                  className="max-h-48 rounded border border-gray-200 dark:border-slate-700 hover:opacity-90 cursor-pointer"
                 />
               </a>
             )}

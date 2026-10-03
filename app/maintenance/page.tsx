@@ -18,7 +18,7 @@ import {
 
 type RequestRow = {
   request_id: string;
-  student_id:string;
+  student_id: string;
   description: string;
   status: string;
   urgency_level: string;
@@ -63,7 +63,6 @@ export default function MaintenancePage() {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-
     if (!user) {
       router.push("/login");
       return;
@@ -120,7 +119,6 @@ export default function MaintenancePage() {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-
     if (!user) return;
 
     const update: Record<string, unknown> = { status: newStatus };
@@ -174,7 +172,9 @@ export default function MaintenancePage() {
   if (loading) {
     return (
       <main className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-slate-500 text-sm">Loading...</div>
+        <div className="animate-pulse text-slate-500 dark:text-slate-400 text-sm">
+          Loading...
+        </div>
       </main>
     );
   }
@@ -184,83 +184,84 @@ export default function MaintenancePage() {
       <div className="max-w-4xl mx-auto animate-fade-in">
         <Link
           href="/dashboard"
-          className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-indigo-600 mb-4 transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 mb-4 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Dashboard
         </Link>
 
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-11 h-11 rounded-xl bg-indigo-100 flex items-center justify-center">
-            <Wrench className="w-5 h-5 text-indigo-600" />
+          <div className="w-11 h-11 rounded-xl bg-indigo-100 dark:bg-indigo-950/40 flex items-center justify-center">
+            <Wrench className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
               Maintenance Queue
             </h1>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
               Prioritized work · fast-track and critical first
             </p>
           </div>
         </div>
 
         {error && (
-          <div className="text-sm text-red-700 bg-red-50 border border-red-200 p-3 rounded-xl mb-4">
+          <div className="text-sm text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 p-3 rounded-xl mb-4">
             {error}
           </div>
         )}
 
-        {/* Queue */}
-        <h2 className="text-lg font-semibold text-slate-900 mb-3 px-1 inline-flex items-center gap-2">
-          <Clock className="w-5 h-5 text-amber-600" />
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-3 px-1 inline-flex items-center gap-2">
+          <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
           Waiting for Work ({queue.length})
         </h2>
         {queue.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-8 text-center mb-8">
-            <p className="text-slate-500 text-sm">Queue is empty.</p>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-8 text-center mb-8">
+            <p className="text-slate-500 dark:text-slate-400 text-sm">
+              Queue is empty.
+            </p>
           </div>
         ) : (
           <div className="space-y-3 mb-8">
             {queue.map((r) => (
               <div
                 key={r.request_id}
-                className={`bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 border-l-4 ${
+                className={`bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-5 border-l-4 ${
                   r.is_fast_track
                     ? "border-l-red-500"
                     : r.urgency_level === "high"
                     ? "border-l-orange-400"
                     : r.urgency_level === "medium"
                     ? "border-l-blue-400"
-                    : "border-l-slate-300"
+                    : "border-l-slate-300 dark:border-l-slate-600"
                 }`}
               >
                 <div className="flex items-center gap-2 mb-3 flex-wrap">
-                  <span className="text-sm font-medium text-slate-600 capitalize">
+                  <span className="text-sm font-medium text-slate-600 dark:text-slate-400 capitalize">
                     {r.category?.category_name ?? "Unknown"}
                   </span>
-                  <span className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">
+                  <span className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-md">
                     {r.dormitory?.name ?? "Unknown dorm"}
                   </span>
                   {r.is_fast_track && (
-                    <span className="inline-flex items-center gap-1 text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-md font-medium">
+                    <span className="inline-flex items-center gap-1 text-xs bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300 px-2 py-0.5 rounded-md font-medium">
                       <AlertTriangle className="w-3 h-3" />
                       FAST-TRACK
                     </span>
                   )}
-                  <span className="text-xs text-slate-400">
+                  <span className="text-xs text-slate-400 dark:text-slate-500">
                     {r.urgency_level.toUpperCase()}
                   </span>
                 </div>
 
-                <p className="text-slate-800 mb-3 leading-relaxed">
+                <p className="text-slate-800 dark:text-slate-200 mb-3 leading-relaxed">
                   {r.description}
                 </p>
 
                 <Attachments requestId={r.request_id} />
 
-                <p className="text-xs text-slate-500 mt-3 mb-4 inline-flex items-center gap-1">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-3 mb-4 inline-flex items-center gap-1">
                   <User className="w-3 h-3" />
-                  <strong className="text-slate-700">
+                  <strong className="text-slate-700 dark:text-slate-200">
                     {r.student?.full_name ?? "Unknown"}
                   </strong>
                   {r.student?.contact_number && ` · ${r.student.contact_number}`}
@@ -287,34 +288,35 @@ export default function MaintenancePage() {
           </div>
         )}
 
-        {/* In Progress */}
-        <h2 className="text-lg font-semibold text-slate-900 mb-3 px-1 inline-flex items-center gap-2">
-          <Wrench className="w-5 h-5 text-amber-600" />
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-3 px-1 inline-flex items-center gap-2">
+          <Wrench className="w-5 h-5 text-amber-600 dark:text-amber-400" />
           In Progress ({inProgress.length})
         </h2>
         {inProgress.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-8 text-center mb-8">
-            <p className="text-slate-500 text-sm">Nothing in progress.</p>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-8 text-center mb-8">
+            <p className="text-slate-500 dark:text-slate-400 text-sm">
+              Nothing in progress.
+            </p>
           </div>
         ) : (
           <div className="space-y-3 mb-8">
             {inProgress.map((r) => (
               <div
                 key={r.request_id}
-                className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 border-l-4 border-l-amber-400"
+                className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-5 border-l-4 border-l-amber-400"
               >
                 <div className="flex items-center gap-2 mb-3 flex-wrap">
-                  <span className="text-sm font-medium text-slate-600 capitalize">
+                  <span className="text-sm font-medium text-slate-600 dark:text-slate-400 capitalize">
                     {r.category?.category_name ?? "Unknown"}
                   </span>
-                  <span className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">
+                  <span className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-md">
                     {r.dormitory?.name ?? "Unknown dorm"}
                   </span>
-                  <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-md font-medium border border-amber-200">
+                  <span className="text-xs bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-md font-medium border border-amber-200 dark:border-amber-900/50">
                     IN PROGRESS
                   </span>
                 </div>
-                <p className="text-slate-800 mb-3 leading-relaxed">
+                <p className="text-slate-800 dark:text-slate-200 mb-3 leading-relaxed">
                   {r.description}
                 </p>
                 <Attachments requestId={r.request_id} />
@@ -339,41 +341,42 @@ export default function MaintenancePage() {
           </div>
         )}
 
-        {/* Resolved */}
-        <h2 className="text-lg font-semibold text-slate-900 mb-3 px-1 inline-flex items-center gap-2">
-          <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-3 px-1 inline-flex items-center gap-2">
+          <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
           Recently Resolved ({resolved.length})
         </h2>
         {resolved.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-8 text-center">
-            <p className="text-slate-500 text-sm">Nothing resolved yet.</p>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-8 text-center">
+            <p className="text-slate-500 dark:text-slate-400 text-sm">
+              Nothing resolved yet.
+            </p>
           </div>
         ) : (
           <div className="space-y-2">
             {resolved.slice(0, 10).map((r) => (
               <div
                 key={r.request_id}
-                className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-4"
+                className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-4"
               >
                 <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  <span className="text-xs font-medium text-slate-500 capitalize">
+                  <span className="text-xs font-medium text-slate-500 dark:text-slate-400 capitalize">
                     {r.category?.category_name ?? "Unknown"}
                   </span>
-                  <span className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">
+                  <span className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-md">
                     {r.dormitory?.name ?? "Unknown dorm"}
                   </span>
-                  <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md font-medium border border-emerald-200">
+                  <span className="text-xs bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-md font-medium border border-emerald-200 dark:border-emerald-900/50">
                     RESOLVED
                   </span>
                 </div>
-                <p className="text-slate-800 text-sm leading-relaxed">
+                <p className="text-slate-800 dark:text-slate-200 text-sm leading-relaxed">
                   {r.description}
                 </p>
                 <FeedbackBlock
                   requestId={r.request_id}
                   studentId={r.student_id}
                 />
-                <p className="text-xs text-slate-500 mt-2">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
                   By {r.student?.full_name ?? "Unknown"}
                   {r.date_resolved &&
                     ` · resolved ${new Date(

@@ -17,7 +17,7 @@ import {
 
 type RequestRow = {
   request_id: string;
-  student_id:string;
+  student_id: string;
   description: string;
   status: string;
   urgency_level: string;
@@ -33,9 +33,12 @@ type RequestRow = {
 };
 
 const statusColor: Record<string, string> = {
-  approved: "bg-indigo-100 text-indigo-700 border-indigo-200",
-  in_progress: "bg-amber-100 text-amber-700 border-amber-200",
-  resolved: "bg-emerald-100 text-emerald-700 border-emerald-200",
+  approved:
+    "bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-900/50",
+  in_progress:
+    "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/50",
+  resolved:
+    "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/50",
 };
 
 const statusLabel: Record<string, string> = {
@@ -57,7 +60,6 @@ export default function MatronPage() {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-
     if (!user) {
       router.push("/login");
       return;
@@ -115,7 +117,6 @@ export default function MatronPage() {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-
     if (!user) return;
 
     const { error: updateError } = await supabase
@@ -154,7 +155,9 @@ export default function MatronPage() {
   if (loading) {
     return (
       <main className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-slate-500 text-sm">Loading...</div>
+        <div className="animate-pulse text-slate-500 dark:text-slate-400 text-sm">
+          Loading...
+        </div>
       </main>
     );
   }
@@ -164,41 +167,40 @@ export default function MatronPage() {
       <div className="max-w-3xl mx-auto animate-fade-in">
         <Link
           href="/dashboard"
-          className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-indigo-600 mb-4 transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 mb-4 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Dashboard
         </Link>
 
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-11 h-11 rounded-xl bg-indigo-100 flex items-center justify-center">
-            <Send className="w-5 h-5 text-indigo-600" />
+          <div className="w-11 h-11 rounded-xl bg-indigo-100 dark:bg-indigo-950/40 flex items-center justify-center">
+            <Send className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
               Matron / Patron Dashboard
             </h1>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
               All dorms · review and forward to Maintenance
             </p>
           </div>
         </div>
 
         {error && (
-          <div className="text-sm text-red-700 bg-red-50 border border-red-200 p-3 rounded-xl mb-4">
+          <div className="text-sm text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 p-3 rounded-xl mb-4">
             {error}
           </div>
         )}
 
-        {/* Pending */}
-        <h2 className="text-lg font-semibold text-slate-900 mb-3 px-1 inline-flex items-center gap-2">
-          <Inbox className="w-5 h-5 text-indigo-600" />
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-3 px-1 inline-flex items-center gap-2">
+          <Inbox className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
           Awaiting Your Approval ({pending.length})
         </h2>
 
         {pending.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-8 text-center mb-8">
-            <p className="text-slate-500 text-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-8 text-center mb-8">
+            <p className="text-slate-500 dark:text-slate-400 text-sm">
               ✅ No confirmed reports waiting.
             </p>
           </div>
@@ -207,7 +209,7 @@ export default function MatronPage() {
             {pending.map((r) => (
               <div
                 key={r.request_id}
-                className={`bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 border-l-4 ${
+                className={`bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-5 border-l-4 ${
                   r.is_fast_track
                     ? "border-l-red-500"
                     : r.urgency_level === "high"
@@ -216,34 +218,34 @@ export default function MatronPage() {
                 }`}
               >
                 <div className="flex items-center gap-2 mb-3 flex-wrap">
-                  <span className="text-sm font-medium text-slate-600 capitalize">
+                  <span className="text-sm font-medium text-slate-600 dark:text-slate-400 capitalize">
                     {r.category?.category_name ?? "Unknown"}
                   </span>
-                  <span className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">
+                  <span className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-md">
                     {r.dormitory?.name ?? "Unknown dorm"}
                   </span>
                   {r.is_fast_track && (
-                    <span className="inline-flex items-center gap-1 text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-md font-medium">
+                    <span className="inline-flex items-center gap-1 text-xs bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300 px-2 py-0.5 rounded-md font-medium">
                       <AlertTriangle className="w-3 h-3" />
                       FAST-TRACK
                     </span>
                   )}
-                  <span className="text-xs text-slate-400">
+                  <span className="text-xs text-slate-400 dark:text-slate-500">
                     {r.urgency_level.toUpperCase()}
                   </span>
                 </div>
 
-                <p className="text-slate-800 mb-3 leading-relaxed">
+                <p className="text-slate-800 dark:text-slate-200 mb-3 leading-relaxed">
                   {r.description}
                 </p>
 
                 <Attachments requestId={r.request_id} />
 
-                <div className="text-xs text-slate-500 space-y-1 mt-3 mb-4">
+                <div className="text-xs text-slate-500 dark:text-slate-400 space-y-1 mt-3 mb-4">
                   <p className="inline-flex items-center gap-1">
                     <User className="w-3 h-3" />
                     Reported by{" "}
-                    <strong className="text-slate-700">
+                    <strong className="text-slate-700 dark:text-slate-200">
                       {r.student?.full_name ?? "Unknown"}
                     </strong>
                     {r.student?.contact_number &&
@@ -251,7 +253,7 @@ export default function MatronPage() {
                   </p>
                   <p>
                     Confirmed by{" "}
-                    <strong className="text-slate-700">
+                    <strong className="text-slate-700 dark:text-slate-200">
                       {r.confirmer?.full_name ?? "Unknown"}
                     </strong>
                     {r.confirmed_at &&
@@ -262,7 +264,7 @@ export default function MatronPage() {
                 <button
                   onClick={() => handleApprove(r.request_id)}
                   disabled={actionLoading === r.request_id}
-                  className="w-full inline-flex items-center justify-center gap-2 bg-indigo-600 text-white py-2.5 rounded-xl hover:bg-indigo-700 disabled:opacity-50 font-medium text-sm shadow-sm hover:shadow-md transition-all"
+                  className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white py-2.5 rounded-xl hover:from-indigo-700 hover:to-blue-700 disabled:opacity-50 font-medium text-sm shadow-lg shadow-indigo-500/20 hover:shadow-xl transition-all"
                 >
                   {actionLoading === r.request_id
                     ? "Approving..."
@@ -276,15 +278,14 @@ export default function MatronPage() {
           </div>
         )}
 
-        {/* Forwarded */}
-        <h2 className="text-lg font-semibold text-slate-900 mb-3 px-1 inline-flex items-center gap-2">
-          <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-3 px-1 inline-flex items-center gap-2">
+          <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
           Sent to Maintenance ({forwarded.length})
         </h2>
 
         {forwarded.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-8 text-center">
-            <p className="text-slate-500 text-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-8 text-center">
+            <p className="text-slate-500 dark:text-slate-400 text-sm">
               Nothing has been forwarded yet.
             </p>
           </div>
@@ -293,30 +294,30 @@ export default function MatronPage() {
             {forwarded.map((r) => (
               <div
                 key={r.request_id}
-                className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-4"
+                className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-4"
               >
                 <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  <span className="text-xs font-medium text-slate-500 capitalize">
+                  <span className="text-xs font-medium text-slate-500 dark:text-slate-400 capitalize">
                     {r.category?.category_name ?? "Unknown"}
                   </span>
-                  <span className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">
+                  <span className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-md">
                     {r.dormitory?.name ?? "Unknown dorm"}
                   </span>
                   {r.is_fast_track && (
-                    <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-md font-medium">
+                    <span className="text-xs bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300 px-2 py-0.5 rounded-md font-medium">
                       FAST-TRACK
                     </span>
                   )}
                   <span
                     className={`text-xs px-2 py-0.5 rounded-md font-medium border ${
                       statusColor[r.status] ??
-                      "bg-slate-100 text-slate-700 border-slate-200"
+                      "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700"
                     }`}
                   >
                     {statusLabel[r.status] ?? r.status.toUpperCase()}
                   </span>
                 </div>
-                <p className="text-slate-800 text-sm leading-relaxed">
+                <p className="text-slate-800 dark:text-slate-200 text-sm leading-relaxed">
                   {r.description}
                 </p>
                 {r.status === "resolved" && (
@@ -325,7 +326,7 @@ export default function MatronPage() {
                     studentId={r.student_id}
                   />
                 )}
-                <p className="text-xs text-slate-500 mt-2">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
                   By {r.student?.full_name ?? "Unknown"}
                   {r.approved_at &&
                     ` · forwarded ${new Date(

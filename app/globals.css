@@ -1,8 +1,18 @@
 @import "tailwindcss";
 
+/* ============================================ */
+/* DARK MODE — class-based so we can toggle     */
+/* ============================================ */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8fafc;
+  --foreground: #0f172a;
+}
+
+.dark {
+  --background: #0a0a12;
+  --foreground: #f1f5f9;
 }
 
 @theme inline {
@@ -12,25 +22,22 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Smooth scrolling */
+/* ============================================ */
+/* SMOOTH SCROLL                                */
+/* ============================================ */
 html {
   scroll-behavior: smooth;
 }
 
-/* Custom scrollbar */
+/* ============================================ */
+/* CUSTOM SCROLLBAR                             */
+/* ============================================ */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -45,8 +52,16 @@ html {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(100, 116, 139, 0.5);
 }
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}
 
-/* Fade-in animation */
+/* ============================================ */
+/* ANIMATIONS                                   */
+/* ============================================ */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -58,28 +73,84 @@ html {
   }
 }
 
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
 .animate-fade-in {
-  animation: fadeIn 0.3s ease-out;
+  animation: fadeIn 0.4s ease-out;
+}
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+.animate-pulse-glow {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradientShift 6s ease infinite;
 }
 
-/* Toggle screen vs print versions */
-.print-only {
-  display: none;
+/* ============================================ */
+/* GLASS EFFECTS & SHADOWS                      */
+/* ============================================ */
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+.dark .glass-card {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.1);
 }
 
-@media print {
-  .screen-only {
-    display: none !important;
-  }
-  .print-only {
-    display: block !important;
-  }
+.shadow-glow {
+  box-shadow: 0 0 24px rgba(99, 102, 241, 0.15),
+              0 4px 12px rgba(0, 0, 0, 0.05);
+}
+.dark .shadow-glow {
+  box-shadow: 0 0 32px rgba(99, 102, 241, 0.25),
+              0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* ============================================ */
 /* PRINT STYLES FOR FORMAL REPORTS              */
 /* ============================================ */
-
 .print-only {
   display: none;
 }
@@ -89,38 +160,30 @@ html {
     size: A4;
     margin: 18mm 16mm;
   }
-
   html,
   body {
     background: white !important;
     color: black !important;
   }
-
   nav {
     display: none !important;
   }
-
   .screen-only,
   .no-print {
     display: none !important;
   }
-
   .print-only {
     display: block !important;
   }
-
   .page-break {
     page-break-before: always;
   }
-
   table {
     page-break-inside: avoid;
   }
-
   section {
     page-break-inside: avoid;
   }
-
   a {
     color: black !important;
     text-decoration: none !important;

@@ -48,20 +48,16 @@ export default function ReportPage() {
       setPreview(null);
       return;
     }
-
     if (f.size > 50 * 1024 * 1024) {
       setError("File is too large. Max 50 MB.");
       return;
     }
-
     if (!f.type.startsWith("image/") && !f.type.startsWith("video/")) {
       setError("Only images or videos are allowed.");
       return;
     }
-
     setError(null);
     setFile(f);
-
     if (f.type.startsWith("image/")) {
       const url = URL.createObjectURL(f);
       setPreview(url);
@@ -82,11 +78,9 @@ export default function ReportPage() {
 
     try {
       const supabase = createClient();
-
       const {
         data: { user },
       } = await supabase.auth.getUser();
-
       if (!user) {
         router.push("/login");
         return;
@@ -101,7 +95,6 @@ export default function ReportPage() {
       if (profileError || !profile?.dormitory_id) {
         throw new Error("Could not find your dormitory — contact support");
       }
-
       if (profile.role !== "student") {
         throw new Error("Only students can submit reports");
       }
@@ -132,11 +125,9 @@ export default function ReportPage() {
       if (file) {
         const fileExt = file.name.split(".").pop();
         const fileName = `${newRequest.request_id}/${Date.now()}.${fileExt}`;
-
         const { error: uploadError } = await supabase.storage
           .from("attachments")
           .upload(fileName, file);
-
         if (uploadError) throw uploadError;
 
         const {
@@ -147,7 +138,6 @@ export default function ReportPage() {
           request_id: newRequest.request_id,
           file_url: publicUrl,
         });
-
         if (attError) throw attError;
       }
 
@@ -190,22 +180,22 @@ export default function ReportPage() {
       <div className="max-w-2xl mx-auto animate-fade-in">
         <Link
           href="/dashboard"
-          className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-indigo-600 mb-4 transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 mb-4 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Dashboard
         </Link>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-6 sm:p-8">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-6 sm:p-8">
           <div className="flex items-start gap-4 mb-6">
-            <div className="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center flex-shrink-0">
-              <FileWarning className="w-6 h-6 text-indigo-600" />
+            <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-950/40 flex items-center justify-center flex-shrink-0">
+              <FileWarning className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                 Report an Issue
               </h1>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-slate-500 dark:text-slate-400">
                 Your report will go to your Sub-Warden for confirmation
               </p>
             </div>
@@ -213,14 +203,14 @@ export default function ReportPage() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                 Category
               </label>
               <select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
                 required
-                className="w-full border border-slate-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 text-sm"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 text-sm text-slate-900 dark:text-slate-100"
               >
                 <option value="">Select a category</option>
                 {categories.map((c) => (
@@ -232,7 +222,7 @@ export default function ReportPage() {
               </select>
 
               {isPest && (
-                <div className="mt-2 flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl p-3">
+                <div className="mt-2 flex items-start gap-2 text-sm text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 rounded-xl p-3">
                   <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                   <div>
                     <strong>Pest reports are treated as critical.</strong> An
@@ -244,7 +234,7 @@ export default function ReportPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                 Description
               </label>
               <textarea
@@ -253,25 +243,25 @@ export default function ReportPage() {
                 required
                 rows={5}
                 placeholder="What's the problem? Be specific — location, what you see, how long it's been happening..."
-                className="w-full border border-slate-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 text-sm resize-none"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 resize-none"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
                 Photo or Video Evidence{" "}
-                <span className="text-slate-400 font-normal">
+                <span className="text-slate-400 dark:text-slate-500 font-normal">
                   (optional · max 50 MB)
                 </span>
               </label>
 
               {!file ? (
-                <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-xl p-6 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/50 transition-all">
-                  <Upload className="w-6 h-6 text-slate-400 mb-2" />
-                  <p className="text-sm text-slate-600 font-medium">
+                <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-6 cursor-pointer hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20 transition-all">
+                  <Upload className="w-6 h-6 text-slate-400 dark:text-slate-500 mb-2" />
+                  <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
                     Click to upload a photo or video
                   </p>
-                  <p className="text-xs text-slate-400 mt-1">
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
                     A clear photo or 15–30 second video helps verify the issue
                   </p>
                   <input
@@ -282,20 +272,20 @@ export default function ReportPage() {
                   />
                 </label>
               ) : (
-                <div className="border border-slate-300 rounded-xl p-3">
+                <div className="border border-slate-300 dark:border-slate-700 rounded-xl p-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-slate-800 truncate">
+                      <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">
                         {file.name}
                       </p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
                         {(file.size / 1024 / 1024).toFixed(2)} MB
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={clearFile}
-                      className="text-slate-400 hover:text-red-600 p-1 rounded hover:bg-red-50 transition-colors flex-shrink-0"
+                      className="text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors flex-shrink-0"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -306,13 +296,13 @@ export default function ReportPage() {
                       <img
                         src={preview}
                         alt="Preview"
-                        className="max-h-48 rounded-lg border border-slate-200"
+                        className="max-h-48 rounded-lg border border-slate-200 dark:border-slate-700"
                       />
                     </div>
                   )}
 
                   {file.type.startsWith("video/") && (
-                    <p className="mt-2 text-xs text-slate-500">
+                    <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
                       🎥 Video ready to upload
                     </p>
                   )}
@@ -321,7 +311,7 @@ export default function ReportPage() {
             </div>
 
             {error && (
-              <div className="text-sm text-red-700 bg-red-50 border border-red-200 p-3 rounded-xl">
+              <div className="text-sm text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 p-3 rounded-xl">
                 {error}
               </div>
             )}
@@ -330,7 +320,7 @@ export default function ReportPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="group flex-1 inline-flex items-center justify-center gap-2 bg-indigo-600 text-white py-3 rounded-xl hover:bg-indigo-700 disabled:opacity-50 font-medium shadow-sm hover:shadow-md transition-all"
+                className="group flex-1 inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white py-3 rounded-xl hover:from-indigo-700 hover:to-blue-700 disabled:opacity-50 font-medium shadow-lg shadow-indigo-500/20 hover:shadow-xl transition-all"
               >
                 {loading ? (
                   "Submitting..."
@@ -344,7 +334,7 @@ export default function ReportPage() {
               <button
                 type="button"
                 onClick={() => router.push("/dashboard")}
-                className="px-5 py-3 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 font-medium transition-colors"
+                className="px-5 py-3 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 font-medium transition-colors"
               >
                 Cancel
               </button>

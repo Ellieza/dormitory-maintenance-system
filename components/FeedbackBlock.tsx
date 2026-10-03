@@ -21,7 +21,6 @@ export default function FeedbackBlock({ requestId, studentId }: Props) {
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-  // Form state
   const [rating, setRating] = useState(0);
   const [hoveredStar, setHoveredStar] = useState(0);
   const [comment, setComment] = useState("");
@@ -81,7 +80,7 @@ export default function FeedbackBlock({ requestId, studentId }: Props) {
 
   if (loading) {
     return (
-      <div className="mt-3 flex items-center gap-2 text-xs text-slate-400">
+      <div className="mt-3 flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
         <Loader2 className="w-3 h-3 animate-spin" />
         Loading feedback...
       </div>
@@ -91,10 +90,10 @@ export default function FeedbackBlock({ requestId, studentId }: Props) {
   // ----- Existing feedback (shown to everyone) -----
   if (feedback) {
     return (
-      <div className="mt-4 bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+      <div className="mt-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/50 rounded-xl p-4">
         <div className="flex items-center gap-2 mb-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          <p className="text-xs font-semibold text-emerald-800">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          <p className="text-xs font-semibold text-emerald-800 dark:text-emerald-300">
             STUDENT FEEDBACK
           </p>
         </div>
@@ -105,20 +104,20 @@ export default function FeedbackBlock({ requestId, studentId }: Props) {
               className={`w-4 h-4 ${
                 star <= feedback.rating
                   ? "fill-amber-400 text-amber-400"
-                  : "text-slate-300"
+                  : "text-slate-300 dark:text-slate-600"
               }`}
             />
           ))}
-          <span className="text-xs text-slate-600 ml-1">
+          <span className="text-xs text-slate-600 dark:text-slate-400 ml-1">
             ({feedback.rating}/5)
           </span>
         </div>
         {feedback.comment && (
-          <p className="text-sm text-slate-700 italic">
+          <p className="text-sm text-slate-700 dark:text-slate-300 italic">
             &ldquo;{feedback.comment}&rdquo;
           </p>
         )}
-        <p className="text-xs text-slate-400 mt-2">
+        <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
           {new Date(feedback.created_at).toLocaleString()}
         </p>
       </div>
@@ -128,7 +127,7 @@ export default function FeedbackBlock({ requestId, studentId }: Props) {
   // ----- No feedback yet + current user is not the student -----
   if (currentUserId !== studentId) {
     return (
-      <div className="mt-3 text-xs text-slate-400 italic">
+      <div className="mt-3 text-xs text-slate-400 dark:text-slate-500 italic">
         Awaiting student feedback.
       </div>
     );
@@ -138,20 +137,19 @@ export default function FeedbackBlock({ requestId, studentId }: Props) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4"
+      className="mt-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-xl p-4"
     >
       <div className="flex items-center gap-2 mb-3">
-        <MessageSquare className="w-4 h-4 text-amber-600" />
-        <p className="text-sm font-semibold text-amber-900">
+        <MessageSquare className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+        <p className="text-sm font-semibold text-amber-900 dark:text-amber-300">
           Rate the repair
         </p>
       </div>
 
-      <p className="text-xs text-slate-600 mb-2">
+      <p className="text-xs text-slate-600 dark:text-slate-400 mb-2">
         Your feedback goes directly to the Maintenance team and the Matron.
       </p>
 
-      {/* Star rating */}
       <div className="flex items-center gap-1 mb-3">
         {[1, 2, 3, 4, 5].map((star) => (
           <button
@@ -166,13 +164,13 @@ export default function FeedbackBlock({ requestId, studentId }: Props) {
               className={`w-7 h-7 ${
                 star <= (hoveredStar || rating)
                   ? "fill-amber-400 text-amber-400"
-                  : "text-slate-300"
+                  : "text-slate-300 dark:text-slate-600"
               }`}
             />
           </button>
         ))}
         {rating > 0 && (
-          <span className="text-sm text-slate-700 ml-2 font-medium">
+          <span className="text-sm text-slate-700 dark:text-slate-300 ml-2 font-medium">
             {rating}/5
           </span>
         )}
@@ -183,12 +181,10 @@ export default function FeedbackBlock({ requestId, studentId }: Props) {
         onChange={(e) => setComment(e.target.value)}
         placeholder="Optional: tell us how it went..."
         rows={2}
-        className="w-full text-sm border border-slate-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 resize-none bg-white"
+        className="w-full text-sm bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 resize-none text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
       />
 
-      {error && (
-        <p className="text-xs text-red-600 mt-1">{error}</p>
-      )}
+      {error && <p className="text-xs text-red-600 dark:text-red-400 mt-1">{error}</p>}
 
       <button
         type="submit"
