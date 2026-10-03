@@ -14,13 +14,14 @@ export default function NavBar() {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Load theme from localStorage (defaults to light if none saved)
+  // Re-sync theme from localStorage on every route change
+  // This keeps the NavBar in lockstep with the floating ThemeToggle
   useEffect(() => {
     const saved = localStorage.getItem("dms-theme") as "light" | "dark" | null;
     const initial = saved ?? "light";
     setTheme(initial);
     document.documentElement.classList.toggle("dark", initial === "dark");
-  }, []);
+  }, [pathname]);
 
   function toggleTheme() {
     const next = theme === "dark" ? "light" : "dark";
@@ -56,7 +57,6 @@ export default function NavBar() {
   }, [pathname]);
 
   async function handleLogout() {
-    // Reset theme so the next user starts in light mode
     localStorage.removeItem("dms-theme");
     document.documentElement.classList.remove("dark");
     setTheme("light");
