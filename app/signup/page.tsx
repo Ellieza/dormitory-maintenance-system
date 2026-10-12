@@ -22,14 +22,10 @@ type Dormitory = {
   type: "boys" | "girls";
 };
 
-const STUDENT_ROLES = ["student", "sub_warden"];
-const DORM_ROLES = ["student", "sub_warden"];
-
 export default function SignupPage() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("student");
   const [gender, setGender] = useState<"" | "male" | "female">("");
   const [tafNumber, setTafNumber] = useState("");
   const [roomNumber, setRoomNumber] = useState("");
@@ -39,8 +35,8 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const isStudentRole = STUDENT_ROLES.includes(role);
-  const needsDorm = DORM_ROLES.includes(role);
+  // Signup is for Students only
+  const ROLE = "student";
 
   useEffect(() => {
     const supabase = createClient();
@@ -64,13 +60,8 @@ export default function SignupPage() {
       )
     : [];
 
-  function validateEmail(email: string, forStudent: boolean): boolean {
-    const trimmed = email.trim().toLowerCase();
-    if (forStudent) return trimmed.endsWith("@student.pnguot.ac.pg");
-    return (
-      trimmed.endsWith("@pnguot.ac.pg") &&
-      !trimmed.endsWith("@student.pnguot.ac.pg")
-    );
+  function validateEmail(email: string): boolean {
+    return email.trim().toLowerCase().endsWith("@student.pnguot.ac.pg");
   }
 
   async function handleSignup(e: React.FormEvent) {
@@ -78,28 +69,24 @@ export default function SignupPage() {
     setLoading(true);
     setError(null);
 
-    if (!validateEmail(email, isStudentRole)) {
+    if (!validateEmail(email)) {
       setError(
-        isStudentRole
-          ? "Students and Sub-Wardens must use a @student.pnguot.ac.pg email address."
-          : "Staff must use a @pnguot.ac.pg email address."
+        "Students must use a @student.pnguot.ac.pg email address."
       );
       setLoading(false);
       return;
     }
-    if (isStudentRole && !gender) {
+    if (!gender) {
       setError("Please select your gender.");
       setLoading(false);
       return;
     }
-    if (isStudentRole && (!tafNumber.trim() || !roomNumber.trim())) {
-      setError(
-        "TAF number and room number are required for students and sub-wardens."
-      );
+    if (!tafNumber.trim() || !roomNumber.trim()) {
+      setError("TAF number and room number are required.");
       setLoading(false);
       return;
     }
-    if (needsDorm && !dormitoryId) {
+    if (!dormitoryId) {
       setError("Please select your dormitory.");
       setLoading(false);
       return;
@@ -126,11 +113,11 @@ export default function SignupPage() {
       user_id: authData.user.id,
       full_name: fullName.trim(),
       email: email.trim().toLowerCase(),
-      role,
-      gender: isStudentRole ? gender : null,
-      taf_number: isStudentRole ? tafNumber.trim() : null,
-      room_number: isStudentRole ? roomNumber.trim() : null,
-      dormitory_id: needsDorm ? dormitoryId : null,
+      role: ROLE,
+      gender,
+      taf_number: tafNumber.trim(),
+      room_number: roomNumber.trim(),
+      dormitory_id: dormitoryId,
     });
 
     if (profileError) {
@@ -169,7 +156,7 @@ export default function SignupPage() {
 
         <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-200/60 dark:border-slate-700/60 p-8">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 text-center mb-1">
-            Create your account
+            Student Registration
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-6">
             Dormitory Maintenance System · PNGUoT
@@ -201,11 +188,7 @@ export default function SignupPage() {
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
                 <input
                   type="email"
-                  placeholder={
-                    isStudentRole
-                      ? "yourname@student.pnguot.ac.pg"
-                      : "yourname@pnguot.ac.pg"
-                  }
+                  placeholder="yourname@student.pnguot.ac.pg"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -213,9 +196,7 @@ export default function SignupPage() {
                 />
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                {isStudentRole
-                  ? "Must end with @student.pnguot.ac.pg"
-                  : "Must end with @pnguot.ac.pg"}
+                Must end with @student.pnguot.ac.pg
               </p>
             </div>
 
@@ -239,104 +220,77 @@ export default function SignupPage() {
 
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                Role
+                Gender
               </label>
               <select
-                value={role}
-                onChange={(e) => {
-                  setRole(e.target.value);
-                  setGender("");
-                  setTafNumber("");
-                  setRoomNumber("");
-                  setDormitoryId("");
-                }}
+                value={gender}
+                onChange={(e) =>
+                  setGender(e.target.value as "" | "male" | "female")
+                }
+                required
                 className={selectClass}
               >
-                <option value="student">Student</option>
-                <option value="sub_warden">Sub-Warden</option>
-                <option value="matron_patron">Matron / Patron</option>
-                <option value="maintenance">Maintenance Team</option>
-                <option value="ssf">Student Support & Facilities</option>
+                <option value="">Select gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
               </select>
             </div>
 
-            {isStudentRole && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    Gender
-                  </label>
-                  <select
-                    value={gender}
-                    onChange={(e) =>
-                      setGender(e.target.value as "" | "male" | "female")
-                    }
-                    required
-                    className={selectClass}
-                  >
-                    <option value="">Select gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                  </select>
-                </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                TAF Number
+              </label>
+              <div className="relative">
+                <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
+                <input
+                  type="text"
+                  placeholder="e.g. 22201881"
+                  value={tafNumber}
+                  onChange={(e) => setTafNumber(e.target.value)}
+                  required
+                  className={inputClass}
+                />
+              </div>
+            </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    TAF Number
-                  </label>
-                  <div className="relative">
-                    <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
-                    <input
-                      type="text"
-                      placeholder="e.g. 22201881"
-                      value={tafNumber}
-                      onChange={(e) => setTafNumber(e.target.value)}
-                      required
-                      className={inputClass}
-                    />
-                  </div>
-                </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                Room Number
+              </label>
+              <div className="relative">
+                <DoorOpen className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
+                <input
+                  type="text"
+                  placeholder="e.g. 12B"
+                  value={roomNumber}
+                  onChange={(e) => setRoomNumber(e.target.value)}
+                  required
+                  className={inputClass}
+                />
+              </div>
+            </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    Room Number
-                  </label>
-                  <div className="relative">
-                    <DoorOpen className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
-                    <input
-                      type="text"
-                      placeholder="e.g. 12B"
-                      value={roomNumber}
-                      onChange={(e) => setRoomNumber(e.target.value)}
-                      required
-                      className={inputClass}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                    Dormitory
-                  </label>
-                  <select
-                    value={dormitoryId}
-                    onChange={(e) => setDormitoryId(e.target.value)}
-                    required
-                    disabled={!gender}
-                    className={`${selectClass} disabled:bg-slate-100 dark:disabled:bg-slate-800/50 disabled:cursor-not-allowed disabled:text-slate-400`}
-                  >
-                    <option value="">
-                      {gender ? "Select your dormitory" : "Select gender first"}
-                    </option>
-                    {filteredDorms.map((d) => (
-                      <option key={d.dormitory_id} value={d.dormitory_id}>
-                        {d.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </>
-            )}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                Dormitory
+              </label>
+              <select
+                value={dormitoryId}
+                onChange={(e) => setDormitoryId(e.target.value)}
+                required
+                disabled={!gender}
+                className={`${selectClass} disabled:bg-slate-100 dark:disabled:bg-slate-800/50 disabled:cursor-not-allowed disabled:text-slate-400`}
+              >
+                <option value="">
+                  {gender ? "Select your dormitory" : "Select gender first"}
+                </option>
+                {filteredDorms.map((d) => (
+                  <option key={d.dormitory_id} value={d.dormitory_id}>
+                    {d.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             {error && (
               <div className="flex items-start gap-2 text-sm text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 p-3 rounded-xl">
@@ -348,7 +302,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={loading}
-              className="group w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white py-3 rounded-xl hover:from-indigo-700 hover:to-blue-700 disabled:opacity-50 font-medium shadow-lg shadow-indigo-500/20 hover:shadow-xl hover:shadow-indigo-500/30 transition-all"
+              className="group w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white py-3 rounded-xl hover:from-indigo-700 hover:to-blue-700 disabled:opacity-50 font-medium shadow-lg shadow-indigo-500/20 hover:shadow-xl transition-all"
             >
               {loading ? "Creating account..." : "Sign Up"}
               {!loading && (
@@ -365,6 +319,12 @@ export default function SignupPage() {
             >
               Log in
             </Link>
+          </p>
+
+          <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-4 leading-relaxed">
+            Staff accounts (Sub-Warden, Matron/Patron, Maintenance, SSF) are
+            issued by the university. Contact Student Support & Facilities if
+            you need access.
           </p>
         </div>
       </div>
