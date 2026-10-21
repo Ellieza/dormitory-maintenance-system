@@ -14,16 +14,15 @@ A role-based web application that digitizes dormitory maintenance reporting at *
 
 **https://dormitory-maintenance-system.vercel.app**
 
-Test accounts (password: `password123`):
+Demo accounts (password: `demo1234`):
 
 | Role | Email | Dormitory |
 |---|---|---|
-| Student | `test2@example.com` | Dame Jane Kekedo (DJK) |
-| Sub-Warden | `subwarden1@example.com` | Dame Jane Kekedo (DJK) |
-| Sub-Warden | `subwarden2@example.com` | Poroman South |
-| Matron / Patron | `matron1@example.com` | All dorms |
-| Maintenance Team | `maintenance1@example.com` | All dorms |
-| Student Support & Facilities | `ssf1@example.com` | All dorms |
+| Student | `rachel.kilage@student.pnguot.ac.pg` | Dame Jane Kekedo (DJK) |
+| Sub-Warden | `grace.wambo@student.pnguot.ac.pg` | Dame Jane Kekedo (DJK) |
+| Matron / Patron | `anna.temu@pnguot.ac.pg` | All dorms |
+| Maintenance Team | `daniel.kora@pnguot.ac.pg` | All dorms |
+| Student Support & Facilities | `rebecca.toma@pnguot.ac.pg` | All dorms |
 
 ---
 
