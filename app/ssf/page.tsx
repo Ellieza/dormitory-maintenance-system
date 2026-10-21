@@ -31,16 +31,11 @@ type RequestRow = {
 type Stat = { name: string; count: number };
 
 const statusColor: Record<string, string> = {
-  submitted:
-    "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700",
-  confirmed:
-    "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900/50",
-  approved:
-    "bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-900/50",
-  in_progress:
-    "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/50",
-  resolved:
-    "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/50",
+  submitted: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700",
+  confirmed: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900/50",
+  approved: "bg-red-100 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-900/50",
+  in_progress: "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/50",
+  resolved: "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/50",
 };
 
 const statusLabel: Record<string, string> = {
@@ -74,6 +69,7 @@ export default function SSFStatsPage() {
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [sortOrder, setSortOrder] = useState<string>("newest"); // Added Sort filter
   const router = useRouter();
 
   useEffect(() => {
@@ -142,25 +138,32 @@ export default function SSFStatsPage() {
     new Set(all.map((r) => r.category?.category_name ?? "Unknown"))
   );
 
-  const filteredReports = all.filter((r) => {
-    if (statusFilter !== "all" && r.status !== statusFilter) return false;
-    if (
-      categoryFilter !== "all" &&
-      (r.category?.category_name ?? "Unknown") !== categoryFilter
-    )
-      return false;
-    return true;
-  });
+  // Applying Filters and Sorting
+  const filteredReports = all
+    .filter((r) => {
+      if (statusFilter !== "all" && r.status !== statusFilter) return false;
+      if (
+        categoryFilter !== "all" &&
+        (r.category?.category_name ?? "Unknown") !== categoryFilter
+      )
+        return false;
+      return true;
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.date_reported).getTime();
+      const dateB = new Date(b.date_reported).getTime();
+      return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
+    });
 
   const selectClass =
-    "text-sm bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500";
+    "text-sm bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-red-800/30 focus:border-red-800";
 
   return (
     <main className="min-h-screen p-4 sm:p-8">
       <div className="max-w-5xl mx-auto animate-fade-in">
         <Link
           href="/dashboard"
-          className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 mb-4 transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400 hover:text-red-800 dark:hover:text-red-400 mb-4 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Dashboard
@@ -168,8 +171,8 @@ export default function SSFStatsPage() {
 
         <div className="flex items-start justify-between gap-3 mb-6 flex-wrap">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-indigo-100 dark:bg-indigo-950/40 flex items-center justify-center">
-              <BarChart3 className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+            <div className="w-11 h-11 rounded-xl bg-red-100 dark:bg-red-950/40 flex items-center justify-center">
+              <BarChart3 className="w-5 h-5 text-red-800 dark:text-red-500" />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
@@ -182,7 +185,7 @@ export default function SSFStatsPage() {
           </div>
           <Link
             href="/ssf/yearly"
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-4 py-2 rounded-xl hover:from-indigo-700 hover:to-blue-700 font-medium text-sm shadow-lg shadow-indigo-500/20 hover:shadow-xl transition-all"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-red-800 to-red-900 text-white px-4 py-2 rounded-xl hover:from-red-900 hover:to-amber-700 font-medium text-sm shadow-lg shadow-red-900/20 hover:shadow-xl hover:shadow-amber-500/30 transition-all"
           >
             <Calendar className="w-4 h-4" />
             Annual Report
@@ -260,7 +263,7 @@ export default function SSFStatsPage() {
                     </span>
                     <div className="flex-1 bg-slate-100 dark:bg-slate-800 rounded-lg h-5 overflow-hidden">
                       <div
-                        className="bg-gradient-to-r from-indigo-500 to-blue-500 h-full rounded-lg"
+                        className="bg-gradient-to-r from-red-800 to-amber-600 h-full rounded-lg"
                         style={{
                           width: `${(s.count / maxCategory) * 100}%`,
                         }}
@@ -292,7 +295,7 @@ export default function SSFStatsPage() {
                     </span>
                     <div className="flex-1 bg-slate-100 dark:bg-slate-800 rounded-lg h-5 overflow-hidden">
                       <div
-                        className="bg-gradient-to-r from-indigo-500 to-purple-500 h-full rounded-lg"
+                        className="bg-gradient-to-r from-red-800 to-amber-600 h-full rounded-lg"
                         style={{
                           width: `${(s.count / maxDorm) * 100}%`,
                         }}
@@ -312,7 +315,7 @@ export default function SSFStatsPage() {
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
             All Reports ({filteredReports.length})
           </h2>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -336,6 +339,15 @@ export default function SSFStatsPage() {
                   {c}
                 </option>
               ))}
+            </select>
+            {/* Added Sort Order Filter */}
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value)}
+              className={selectClass}
+            >
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
             </select>
           </div>
         </div>

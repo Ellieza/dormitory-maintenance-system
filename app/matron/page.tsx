@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   Inbox,
   User,
+  Filter,
 } from "lucide-react";
 
 type RequestRow = {
@@ -33,15 +34,14 @@ type RequestRow = {
 };
 
 const statusColor: Record<string, string> = {
-  approved:
-    "bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-900/50",
-  in_progress:
-    "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/50",
-  resolved:
-    "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/50",
+  confirmed: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900/50",
+  approved: "bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-900/50",
+  in_progress: "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/50",
+  resolved: "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/50",
 };
 
 const statusLabel: Record<string, string> = {
+  confirmed: "Confirmed",
   approved: "Approved",
   in_progress: "In Progress",
   resolved: "Resolved",
@@ -53,6 +53,12 @@ export default function MatronPage() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  
+  // Filters
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [sortOrder, setSortOrder] = useState("newest");
+
   const router = useRouter();
 
   async function loadRequests() {
@@ -84,22 +90,20 @@ export default function MatronPage() {
       .from("maintenance_request")
       .select(selectFields)
       .eq("status", "confirmed")
-      .order("is_fast_track", { ascending: false })
-      .order("confirmed_at", { ascending: true });
+      .order("confirmed_at", { ascending: false });
 
     const { data: forwardedData, error: forwardedErr } = await supabase
       .from("maintenance_request")
       .select(selectFields)
       .in("status", ["approved", "in_progress", "resolved"])
       .order("approved_at", { ascending: false })
-      .limit(50);
+      .limit(100);
 
     if (pendingErr || forwardedErr) {
       setError((pendingErr || forwardedErr)?.message ?? "Failed to load");
     } else {
       if (pendingData) setPending(pendingData as unknown as RequestRow[]);
-      if (forwardedData)
-        setForwarded(forwardedData as unknown as RequestRow[]);
+      if (forwardedData) setForwarded(forwardedData as unknown as RequestRow[]);
     }
     setLoading(false);
   }
@@ -152,12 +156,32 @@ export default function MatronPage() {
     setActionLoading(null);
   }
 
+  const filterAndSort = (list: RequestRow[]) => {
+    let filtered = list;
+    if (statusFilter !== "all" && list !== pending) {
+      filtered = filtered.filter(r => r.status === statusFilter);
+    }
+    if (categoryFilter !== "all") {
+      filtered = filtered.filter(r => r.category?.category_name === categoryFilter);
+    }
+    return filtered.sort((a, b) => {
+      const dateA = new Date(a.date_reported).getTime();
+      const dateB = new Date(b.date_reported).getTime();
+      return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
+    });
+  };
+
+  const displayPending = filterAndSort(pending);
+  const displayForwarded = filterAndSort(forwarded);
+
+  const uniqueCategories = Array.from(
+    new Set([...pending, ...forwarded].map((r) => r.category?.category_name).filter(Boolean))
+  );
+
   if (loading) {
     return (
       <main className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-slate-500 dark:text-slate-400 text-sm">
-          Loading...
-        </div>
+        <div className="animate-pulse text-slate-500 dark:text-slate-400 text-sm">Loading...</div>
       </main>
     );
   }
@@ -174,8 +198,8 @@ export default function MatronPage() {
         </Link>
 
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-11 h-11 rounded-xl bg-indigo-100 dark:bg-indigo-950/40 flex items-center justify-center">
-            <Send className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+          <div className="w-11 h-11 rounded-xl bg-red-100 dark:bg-red-950/40 flex items-center justify-center">
+            <Send className="w-5 h-5 text-red-800 dark:text-red-500" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
@@ -193,12 +217,51 @@ export default function MatronPage() {
           </div>
         )}
 
+        {/* FILTERS */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-4 mb-6 flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+            <Filter className="w-4 h-4" />
+            <span className="text-sm font-medium">Filter:</span>
+          </div>
+          
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="text-sm bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1.5 text-slate-900 dark:text-slate-100"
+          >
+            <option value="all">All Statuses</option>
+            <option value="approved">Approved</option>
+            <option value="in_progress">In Progress</option>
+            <option value="resolved">Resolved</option>
+          </select>
+
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="text-sm bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1.5 text-slate-900 dark:text-slate-100 capitalize"
+          >
+            <option value="all">All Categories</option>
+            {uniqueCategories.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+            className="text-sm bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1.5 text-slate-900 dark:text-slate-100"
+          >
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+          </select>
+        </div>
+
         <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-3 px-1 inline-flex items-center gap-2">
-          <Inbox className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-          Awaiting Your Approval ({pending.length})
+          <Inbox className="w-5 h-5 text-red-800 dark:text-red-500" />
+          Awaiting Your Approval ({displayPending.length})
         </h2>
 
-        {pending.length === 0 ? (
+        {displayPending.length === 0 ? (
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-8 text-center mb-8">
             <p className="text-slate-500 dark:text-slate-400 text-sm">
               ✅ No confirmed reports waiting.
@@ -206,72 +269,38 @@ export default function MatronPage() {
           </div>
         ) : (
           <div className="space-y-3 mb-8">
-            {pending.map((r) => (
+            {displayPending.map((r) => (
               <div
                 key={r.request_id}
                 className={`bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-5 border-l-4 ${
-                  r.is_fast_track
-                    ? "border-l-red-500"
-                    : r.urgency_level === "high"
-                    ? "border-l-orange-400"
-                    : "border-l-blue-400"
+                  r.is_fast_track ? "border-l-red-500" : r.urgency_level === "high" ? "border-l-orange-400" : "border-l-blue-400"
                 }`}
               >
                 <div className="flex items-center gap-2 mb-3 flex-wrap">
-                  <span className="text-sm font-medium text-slate-600 dark:text-slate-400 capitalize">
-                    {r.category?.category_name ?? "Unknown"}
-                  </span>
-                  <span className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-md">
-                    {r.dormitory?.name ?? "Unknown dorm"}
-                  </span>
+                  <span className="text-sm font-medium text-slate-600 dark:text-slate-400 capitalize">{r.category?.category_name ?? "Unknown"}</span>
+                  <span className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-md">{r.dormitory?.name ?? "Unknown"}</span>
                   {r.is_fast_track && (
                     <span className="inline-flex items-center gap-1 text-xs bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300 px-2 py-0.5 rounded-md font-medium">
-                      <AlertTriangle className="w-3 h-3" />
-                      FAST-TRACK
+                      <AlertTriangle className="w-3 h-3" /> FAST-TRACK
                     </span>
                   )}
-                  <span className="text-xs text-slate-400 dark:text-slate-500">
-                    {r.urgency_level.toUpperCase()}
-                  </span>
+                  <span className="text-xs text-slate-400 dark:text-slate-500">{r.urgency_level.toUpperCase()}</span>
                 </div>
-
-                <p className="text-slate-800 dark:text-slate-200 mb-3 leading-relaxed">
-                  {r.description}
-                </p>
-
+                <p className="text-slate-800 dark:text-slate-200 mb-3 leading-relaxed">{r.description}</p>
                 <Attachments requestId={r.request_id} />
-
                 <div className="text-xs text-slate-500 dark:text-slate-400 space-y-1 mt-3 mb-4">
                   <p className="inline-flex items-center gap-1">
-                    <User className="w-3 h-3" />
-                    Reported by{" "}
-                    <strong className="text-slate-700 dark:text-slate-200">
-                      {r.student?.full_name ?? "Unknown"}
-                    </strong>
-                    {r.student?.contact_number &&
-                      ` · ${r.student.contact_number}`}
+                    <User className="w-3 h-3" /> Reported by <strong className="text-slate-700 dark:text-slate-200">{r.student?.full_name ?? "Unknown"}</strong>
                   </p>
-                  <p>
-                    Confirmed by{" "}
-                    <strong className="text-slate-700 dark:text-slate-200">
-                      {r.confirmer?.full_name ?? "Unknown"}
-                    </strong>
-                    {r.confirmed_at &&
-                      ` · ${new Date(r.confirmed_at).toLocaleString()}`}
-                  </p>
+                  <p>Confirmed by <strong className="text-slate-700 dark:text-slate-200">{r.confirmer?.full_name ?? "Unknown"}</strong> {r.confirmed_at && ` · ${new Date(r.confirmed_at).toLocaleString()}`}</p>
                 </div>
-
                 <button
                   onClick={() => handleApprove(r.request_id)}
                   disabled={actionLoading === r.request_id}
-                  className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white py-2.5 rounded-xl hover:from-indigo-700 hover:to-blue-700 disabled:opacity-50 font-medium text-sm shadow-lg shadow-indigo-500/20 hover:shadow-xl transition-all"
+                  className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-red-800 to-red-900 text-white py-2.5 rounded-xl hover:from-red-900 hover:to-amber-700 disabled:opacity-50 font-medium text-sm shadow-lg transition-all"
                 >
-                  {actionLoading === r.request_id
-                    ? "Approving..."
-                    : "Approve & Forward to Maintenance"}
-                  {actionLoading !== r.request_id && (
-                    <Send className="w-4 h-4" />
-                  )}
+                  {actionLoading === r.request_id ? "Approving..." : "Approve & Forward"}
+                  {actionLoading !== r.request_id && <Send className="w-4 h-4" />}
                 </button>
               </div>
             ))}
@@ -280,62 +309,29 @@ export default function MatronPage() {
 
         <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-3 px-1 inline-flex items-center gap-2">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-          Sent to Maintenance ({forwarded.length})
+          Sent to Maintenance ({displayForwarded.length})
         </h2>
 
-        {forwarded.length === 0 ? (
+        {displayForwarded.length === 0 ? (
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-8 text-center">
-            <p className="text-slate-500 dark:text-slate-400 text-sm">
-              Nothing has been forwarded yet.
-            </p>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">No reports match filters.</p>
           </div>
         ) : (
           <div className="space-y-2">
-            {forwarded.map((r) => (
-              <div
-                key={r.request_id}
-                className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-4"
-              >
+            {displayForwarded.map((r) => (
+              <div key={r.request_id} className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-4">
                 <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  <span className="text-xs font-medium text-slate-500 dark:text-slate-400 capitalize">
-                    {r.category?.category_name ?? "Unknown"}
-                  </span>
-                  <span className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-md">
-                    {r.dormitory?.name ?? "Unknown dorm"}
-                  </span>
-                  {r.is_fast_track && (
-                    <span className="text-xs bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300 px-2 py-0.5 rounded-md font-medium">
-                      FAST-TRACK
-                    </span>
-                  )}
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded-md font-medium border ${
-                      statusColor[r.status] ??
-                      "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700"
-                    }`}
-                  >
+                  <span className="text-xs font-medium text-slate-500 dark:text-slate-400 capitalize">{r.category?.category_name ?? "Unknown"}</span>
+                  <span className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-md">{r.dormitory?.name ?? "Unknown"}</span>
+                  {r.is_fast_track && <span className="text-xs bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300 px-2 py-0.5 rounded-md font-medium">FAST-TRACK</span>}
+                  <span className={`text-xs px-2 py-0.5 rounded-md font-medium border ${statusColor[r.status] ?? ""}`}>
                     {statusLabel[r.status] ?? r.status.toUpperCase()}
                   </span>
                 </div>
-                <p className="text-slate-800 dark:text-slate-200 text-sm leading-relaxed">
-                  {r.description}
-                </p>
-                {r.status === "resolved" && (
-                  <FeedbackBlock
-                    requestId={r.request_id}
-                    studentId={r.student_id}
-                  />
-                )}
+                <p className="text-slate-800 dark:text-slate-200 text-sm leading-relaxed">{r.description}</p>
+                {r.status === "resolved" && <FeedbackBlock requestId={r.request_id} studentId={r.student_id} />}
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-                  By {r.student?.full_name ?? "Unknown"}
-                  {r.approved_at &&
-                    ` · forwarded ${new Date(
-                      r.approved_at
-                    ).toLocaleDateString()}`}
-                  {r.date_resolved &&
-                    ` · ✅ resolved ${new Date(
-                      r.date_resolved
-                    ).toLocaleDateString()}`}
+                  By {r.student?.full_name ?? "Unknown"} {r.approved_at && `· forwarded ${new Date(r.approved_at).toLocaleDateString()}`}
                 </p>
               </div>
             ))}

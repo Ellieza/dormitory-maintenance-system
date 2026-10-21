@@ -141,8 +141,8 @@ export default function DashboardPage() {
             }`}
           >
             <div className="flex items-start gap-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-100 dark:border-slate-700/50">
-              <div className="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-950/40 flex items-center justify-center flex-shrink-0">
-                <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+              <div className="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-950/40 flex items-center justify-center flex-shrink-0">
+                <User className="w-5 h-5 text-red-800 dark:text-red-500" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
@@ -191,7 +191,7 @@ export default function DashboardPage() {
               <>
                 <Link
                   href="/report"
-                  className="group flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-4 rounded-xl hover:from-indigo-700 hover:to-blue-700 transition-all shadow-lg shadow-indigo-500/20 hover:shadow-xl hover:shadow-indigo-500/30"
+                  className="group flex items-center gap-3 bg-gradient-to-r from-red-800 to-red-900 text-white p-4 rounded-xl hover:from-red-900 hover:to-amber-700 transition-all shadow-lg shadow-red-900/20 hover:shadow-xl hover:shadow-red-900/30"
                 >
                   <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
                     <FileWarning className="w-5 h-5" />
@@ -223,7 +223,7 @@ export default function DashboardPage() {
             {profile?.role === "sub_warden" && (
               <Link
                 href="/sub-warden"
-                className="group flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-4 rounded-xl hover:from-indigo-700 hover:to-blue-700 transition-all shadow-lg shadow-indigo-500/20 hover:shadow-xl hover:shadow-indigo-500/30"
+                className="group flex items-center gap-3 bg-gradient-to-r from-red-800 to-red-900 text-white p-4 rounded-xl hover:from-red-900 hover:to-amber-700 transition-all shadow-lg shadow-red-900/20 hover:shadow-xl hover:shadow-red-900/30"
               >
                 <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
                   <CheckCircle2 className="w-5 h-5" />
@@ -240,7 +240,7 @@ export default function DashboardPage() {
             {profile?.role === "matron_patron" && (
               <Link
                 href="/matron"
-                className="group flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-4 rounded-xl hover:from-indigo-700 hover:to-blue-700 transition-all shadow-lg shadow-indigo-500/20 hover:shadow-xl hover:shadow-indigo-500/30"
+                className="group flex items-center gap-3 bg-gradient-to-r from-red-800 to-red-900 text-white p-4 rounded-xl hover:from-red-900 hover:to-amber-700 transition-all shadow-lg shadow-red-900/20 hover:shadow-xl hover:shadow-red-900/30"
               >
                 <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
                   <Send className="w-5 h-5" />
@@ -257,7 +257,7 @@ export default function DashboardPage() {
             {profile?.role === "maintenance" && (
               <Link
                 href="/maintenance"
-                className="group flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-4 rounded-xl hover:from-indigo-700 hover:to-blue-700 transition-all shadow-lg shadow-indigo-500/20 hover:shadow-xl hover:shadow-indigo-500/30"
+                className="group flex items-center gap-3 bg-gradient-to-r from-red-800 to-red-900 text-white p-4 rounded-xl hover:from-red-900 hover:to-amber-700 transition-all shadow-lg shadow-red-900/20 hover:shadow-xl hover:shadow-red-900/30"
               >
                 <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
                   <Wrench className="w-5 h-5" />
@@ -274,7 +274,7 @@ export default function DashboardPage() {
             {profile?.role === "ssf" && (
               <Link
                 href="/ssf"
-                className="group flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-4 rounded-xl hover:from-indigo-700 hover:to-blue-700 transition-all shadow-lg shadow-indigo-500/20 hover:shadow-xl hover:shadow-indigo-500/30"
+                className="group flex items-center gap-3 bg-gradient-to-r from-red-800 to-red-900 text-white p-4 rounded-xl hover:from-red-900 hover:to-amber-700 transition-all shadow-lg shadow-red-900/20 hover:shadow-xl hover:shadow-red-900/30"
               >
                 <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
                   <BarChart3 className="w-5 h-5" />

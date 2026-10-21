@@ -266,8 +266,8 @@ export default function YearlyReportPage() {
 
           <div className="flex items-start justify-between gap-3 mb-6 flex-wrap">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-xl bg-indigo-100 dark:bg-indigo-950/40 flex items-center justify-center">
-                <Calendar className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+              <div className="w-11 h-11 rounded-xl bg-red-100 dark:bg-red-950/40 flex items-center justify-center">
+                <Calendar className="w-5 h-5 text-red-800 dark:text-red-500" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
@@ -293,7 +293,7 @@ export default function YearlyReportPage() {
               </select>
               <button
                 onClick={() => window.print()}
-                className="inline-flex items-center gap-1.5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-4 py-2 rounded-xl hover:from-indigo-700 hover:to-blue-700 font-medium text-sm shadow-lg shadow-indigo-500/20 hover:shadow-xl transition-all"
+                className="inline-flex items-center gap-1.5 bg-gradient-to-r from-red-800 to-red-900 text-white px-4 py-2 rounded-xl hover:from-red-900 hover:to-amber-700 font-medium text-sm shadow-lg shadow-red-900/20 hover:shadow-xl transition-all"
               >
                 <Printer className="w-4 h-4" />
                 Print / Save as PDF

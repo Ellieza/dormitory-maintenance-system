@@ -100,8 +100,8 @@ export default function MyRequestsPage() {
 
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-indigo-100 dark:bg-indigo-950/40 flex items-center justify-center">
-              <ClipboardList className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+            <div className="w-11 h-11 rounded-xl bg-red-100 dark:bg-red-950/40 flex items-center justify-center">
+              <ClipboardList className="w-5 h-5 text-red-800 dark:text-red-500" />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
@@ -115,7 +115,7 @@ export default function MyRequestsPage() {
           </div>
           <Link
             href="/report"
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-4 py-2.5 rounded-xl hover:from-indigo-700 hover:to-blue-700 text-sm font-medium shadow-lg shadow-indigo-500/20 hover:shadow-xl transition-all"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-red-800 to-red-900 text-white px-4 py-2.5 rounded-xl hover:from-red-900 hover:to-amber-700 text-sm font-medium shadow-lg shadow-red-900/20 hover:shadow-xl transition-all"
           >
             <Plus className="w-4 h-4" />
             New Report
@@ -135,7 +135,7 @@ export default function MyRequestsPage() {
             </p>
             <Link
               href="/report"
-              className="inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium text-sm"
+              className="inline-flex items-center gap-2 text-red-800 dark:text-red-500 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium text-sm"
             >
               Submit your first report
               <Plus className="w-4 h-4" />

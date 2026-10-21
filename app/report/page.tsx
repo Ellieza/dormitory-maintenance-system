@@ -188,8 +188,8 @@ export default function ReportPage() {
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-6 sm:p-8">
           <div className="flex items-start gap-4 mb-6">
-            <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-950/40 flex items-center justify-center flex-shrink-0">
-              <FileWarning className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+            <div className="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-950/40 flex items-center justify-center flex-shrink-0">
+              <FileWarning className="w-6 h-6 text-red-800 dark:text-red-500" />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
@@ -320,7 +320,7 @@ export default function ReportPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="group flex-1 inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white py-3 rounded-xl hover:from-indigo-700 hover:to-blue-700 disabled:opacity-50 font-medium shadow-lg shadow-indigo-500/20 hover:shadow-xl transition-all"
+                className="group flex-1 inline-flex items-center justify-center gap-2 bg-gradient-to-r from-red-800 to-red-900 text-white py-3 rounded-xl hover:from-red-900 hover:to-amber-700 disabled:opacity-50 font-medium shadow-lg shadow-red-900/20 hover:shadow-xl transition-all"
               >
                 {loading ? (
                   "Submitting..."

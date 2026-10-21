@@ -149,7 +149,7 @@ export default function SignupPage() {
           href="/"
           className="flex items-center justify-center gap-2 mb-6 group"
         >
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-blue-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:shadow-xl transition-all group-hover:scale-105">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-800 via-red-700 to-amber-600 flex items-center justify-center shadow-lg shadow-red-900/30 group-hover:shadow-xl group-hover:shadow-red-900/40 transition-all group-hover:scale-105">
             <Building2 className="w-6 h-6 text-white" />
           </div>
         </Link>
@@ -302,7 +302,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={loading}
-              className="group w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white py-3 rounded-xl hover:from-indigo-700 hover:to-blue-700 disabled:opacity-50 font-medium shadow-lg shadow-indigo-500/20 hover:shadow-xl transition-all"
+              className="group w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-red-800 to-red-900 text-white py-3 rounded-xl hover:from-red-900 hover:to-amber-700 disabled:opacity-50 font-medium shadow-lg shadow-red-900/20 hover:shadow-xl transition-all"
             >
               {loading ? "Creating account..." : "Sign Up"}
               {!loading && (
@@ -315,7 +315,7 @@ export default function SignupPage() {
             Already have an account?{" "}
             <Link
               href="/login"
-              className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium hover:underline"
+              className="text-red-800 dark:text-red-500 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium hover:underline"
             >
               Log in
             </Link>
